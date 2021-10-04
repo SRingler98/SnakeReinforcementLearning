@@ -18,7 +18,7 @@ class SnakeEngine:
         while 1:
             if not self.apple_spawned:
                 self.spawn_apple_randomly()
-            self.display.draw_grid()
+            self.display.draw_grid(self.grid_array)
             self.event_handler()
 
     def event_handler(self):
@@ -39,11 +39,13 @@ class SnakeEngine:
     def remove_tail_from_grid(self, state_tuple):
         self.grid_array[state_tuple[0]][state_tuple[1]] = 0
 
+    def add_tail_onto_grid(self, state_tuple):
+        self.grid_array[state_tuple[0]][state_tuple[1]] = 1
+
     def spawn_apple_randomly(self):
-        random_int_x = random.randint(0, 10)
-        random_int_y = random.randint(0, 10)
+        random_int_x = random.randint(0, 9)
+        random_int_y = random.randint(0, 9)
         self.grid_array[random_int_x][random_int_y] = 2
-        self.display.update_apple_state((random_int_x, random_int_y))
         self.apple_spawned = True
 
     def move_player(self, action):
@@ -57,26 +59,34 @@ class SnakeEngine:
             self.move_player_down()
 
     def move_player_right(self):
-        x = self.player_head_pos[0] + 1
+        x = self.player_head_pos[0]
         y = self.player_head_pos[1]
+        self.remove_tail_from_grid((x,y))
+        x += 1
+        self.add_tail_onto_grid((x, y))
         self.player_head_pos = (x, y)
-        self.display.update_player_state(self.player_head_pos)
 
     def move_player_left(self):
-        x = self.player_head_pos[0] - 1
+        x = self.player_head_pos[0]
         y = self.player_head_pos[1]
+        self.remove_tail_from_grid((x, y))
+        x -= 1
+        self.add_tail_onto_grid((x, y))
         self.player_head_pos = (x, y)
-        self.display.update_player_state(self.player_head_pos)
 
     def move_player_up(self):
         x = self.player_head_pos[0]
-        y = self.player_head_pos[1] - 1
+        y = self.player_head_pos[1]
+        self.remove_tail_from_grid((x, y))
+        y -= 1
+        self.add_tail_onto_grid((x, y))
         self.player_head_pos = (x, y)
-        self.display.update_player_state(self.player_head_pos)
 
     def move_player_down(self):
         x = self.player_head_pos[0]
-        y = self.player_head_pos[1] + 1
+        y = self.player_head_pos[1]
+        self.remove_tail_from_grid((x, y))
+        y += 1
+        self.add_tail_onto_grid((x, y))
         self.player_head_pos = (x, y)
-        self.display.update_player_state(self.player_head_pos)
 
