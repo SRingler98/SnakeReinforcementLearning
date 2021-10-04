@@ -14,6 +14,10 @@ class SnakeEngine:
         self.display = DG(grid_size, 50, self.player_head_pos)
         self.apple_spawned = False
 
+    def add_snake_body_to_grid(self):
+        for snake_part in self.player_pos_list:
+            self.grid_array[snake_part[0]][snake_part[1]] = 1
+
     def run_game(self):
         while 1:
             if not self.apple_spawned:
