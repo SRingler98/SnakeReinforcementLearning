@@ -1,11 +1,5 @@
 
-from DisplayGrid import DisplayGrid
+from SnakeEngine import SnakeEngine as SE
 
-
-DG = DisplayGrid(10, 50)
-
-state_tuple = (4, 4)
-
-while 1:
-    DG.draw_grid()
-    DG.event_handler(state_tuple)
+snake = SE(10)
+snake.run_game()

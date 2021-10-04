@@ -56,7 +56,7 @@ class Colors:
 # display grid class displays the grid of the grid to the screen
 class DisplayGrid:
     # DisplayGrid uses the pygame library to display the grid onto the screen
-    def __init__(self, size_in, block_size):
+    def __init__(self, size_in, block_size, player_starting_pos):
         self.block_size = block_size
         self.grid_size = size_in
         pygame.init()
@@ -66,7 +66,7 @@ class DisplayGrid:
         self.screen.fill(self.colors.black)
         pygame.display.set_caption("Snake Reinforcement Learning")
         self.maze = MazeGenerator(self.grid_size)
-        self.maze.change_grid_value(4, 4, 1)  # player
+        self.maze.change_player_position(player_starting_pos)  # player
         # walls
         self.q_was_pressed = False
         self.x_was_pressed = False
@@ -90,7 +90,7 @@ class DisplayGrid:
         # first draw the empty grid first, then the walls and goal, then the player, then the grid overlay last
 
         # then draw the player
-        self.draw_player()
+        self.draw_player_and_apple()
 
         # finally draw the white grid on top of the grid
         for x in range(self.grid_size):
@@ -106,7 +106,7 @@ class DisplayGrid:
         pygame.display.update()
 
     # draw the player object onto the grid
-    def draw_player(self):
+    def draw_player_and_apple(self):
         # find where the player object is a and make a green box
         for x in range(self.grid_size):
             for y in range(self.grid_size):
@@ -119,10 +119,21 @@ class DisplayGrid:
                         self.block_size
                     )
                     pygame.draw.rect(self.screen, self.colors.green, rect)
+                elif maze_test_value == 2:
+                    rect = pygame.Rect(
+                        x * self.block_size,
+                        y * self.block_size,
+                        self.block_size,
+                        self.block_size
+                    )
+                    pygame.draw.rect(self.screen, self.colors.red, rect)
 
     # update where the player is on the grid
     def update_player_state(self, state_tuple):
         self.maze.change_player_position(state_tuple)
+
+    def update_apple_state(self, apple_state):
+        self.maze.change_grid_value(apple_state[0], apple_state[1], 2)
 
     # look to see if the space bar is pressed down or not
     def is_space_pressed_down(self):
@@ -156,16 +167,6 @@ class DisplayGrid:
                         self.x_was_pressed = True
                         return True
         return False
-
-    def event_handler(self, state_tuple):
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RIGHT:
-                    x = state_tuple[0] + 1
-                    y = state_tuple[1]
-                    self.update_player_state((x, y))
-                    state_tuple = (x, y)
-
 
     def close_window_and_restart(self):
         pygame.display.quit()
