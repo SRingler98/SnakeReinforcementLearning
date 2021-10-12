@@ -23,6 +23,7 @@ class SnakeEngine:
         self.apple_pos = (-1, -1)
         self.score = 0
         self.snake_alive = True
+        self.current_reward = 0
 
     def add_snake_body_to_grid(self):
         for snake_part in self.player_pos_list:
@@ -36,15 +37,29 @@ class SnakeEngine:
             self.event_handler()
         print("Game Over!\nFinal Score was: " + str(self.score))
 
-    def start_game_in_steps(self, display_on):
+    def start_game_for_steps(self, display_on):
+        self.snake_alive = True
+        # creates a int array of zeroes based on the grid size
+        self.grid_array = np.zeros((self.grid_size, self.grid_size))
+        self.player_head_pos = (4, 4)  # sets the player to start at 4,
+        self.grid_array[self.player_head_pos[0]][self.player_head_pos[1]] = 1  # sets player position in grid array
+        tail_segment_one = (self.player_head_pos[0] - 1, self.player_head_pos[1])
+        tail_segment_two = (self.player_head_pos[0] - 2, self.player_head_pos[1])
+        self.player_pos_list = [self.player_head_pos]  # sets the head to be the start of the tail
+        self.player_pos_list.append(tail_segment_one)
+        self.player_pos_list.append(tail_segment_two)
+        self.add_snake_body_to_grid()
+        self.apple_spawned = False
         self.spawn_apple_randomly()
+        self.current_reward = 0
         if display_on:
             self.display.draw_grid(self.grid_array)
 
     def refresh_after_step(self, display_on):
         if not self.apple_spawned:
             self.spawn_apple_randomly()
-        self.display.draw_grid(self.grid_array)
+        if display_on:
+            self.display.draw_grid(self.grid_array)
 
     def get_current_twelve_boolean_state(self):
         temp_string = ""
@@ -77,44 +92,61 @@ class SnakeEngine:
         elif apple_pos_x <= player_pos_x:
             temp_string += "0"
 
-        if self.grid_array[player_pos_x][player_pos_y - 1] == 1:
+        # wall up
+        if player_pos_y - 1 <= 0:
+            temp_string += '1'
+        elif self.grid_array[player_pos_x][player_pos_y - 1] == 1:
             temp_string += "1"
         else:
             temp_string += "0"
 
-        if self.grid_array[player_pos_x][player_pos_y + 1] == 1:
+        # wall down
+        if player_pos_y + 1 >= 10:
+            temp_string += "1"
+        elif self.grid_array[player_pos_x][player_pos_y + 1] == 1:
             temp_string += "1"
         else:
             temp_string += "0"
 
-        if self.grid_array[player_pos_x - 1][player_pos_y] == 1:
+        # wall left
+        if player_pos_x - 1 <= 0:
+            temp_string += "1"
+        elif self.grid_array[player_pos_x - 1][player_pos_y] == 1:
             temp_string += "1"
         else:
             temp_string += "0"
 
-        if self.grid_array[player_pos_x + 1][player_pos_y] == 1:
+        # wall right
+        if player_pos_x + 1 >= 10:
+            temp_string += "1"
+        elif self.grid_array[player_pos_x + 1][player_pos_y] == 1:
             temp_string += "1"
         else:
             temp_string += "0"
 
+        # get position difference to see how snake is facing
         position_difference = (self.player_pos_list[0][0] - self.player_pos_list[1][0],
                                self.player_pos_list[0][1] - self.player_pos_list[1][1])
 
+        # snake facing up
         if position_difference == (0, -1):
             temp_string += "1"
         else:
             temp_string += "0"
 
+        # snake facing down
         if position_difference == (0, 1):
             temp_string += "1"
         else:
             temp_string += "0"
 
+        # snake facing left
         if position_difference == (-1, 0):
             temp_string += "1"
         else:
             temp_string += "0"
 
+        # snake facing right
         if position_difference == (1, 0):
             temp_string += "1"
         else:
@@ -129,13 +161,13 @@ class SnakeEngine:
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
-                    self.move_player('right')
+                    self.move_player_step('right')
                 elif event.key == pygame.K_LEFT:
-                    self.move_player('left')
+                    self.move_player_step('left')
                 elif event.key == pygame.K_UP:
-                    self.move_player('up')
+                    self.move_player_step('up')
                 elif event.key == pygame.K_DOWN:
-                    self.move_player('down')
+                    self.move_player_step('down')
 
     def remove_tail_from_grid(self, state_tuple):
         self.grid_array[state_tuple[0]][state_tuple[1]] = 0
@@ -156,7 +188,7 @@ class SnakeEngine:
         self.grid_array[random_int_x][random_int_y] = 2
         self.apple_spawned = True
 
-    def move_player(self, action):
+    def move_player_step(self, action):
         if action == 'right':
             self.move_player_right()
         elif action == 'left':
@@ -191,6 +223,7 @@ class SnakeEngine:
     def move_tail(self, x, y):
         if self.check_if_on_body_or_wall(x, y):
             self.snake_alive = False
+            self.current_reward = -100
         else:
             for segment in self.player_pos_list:
                 self.remove_tail_from_grid(segment)
@@ -213,8 +246,10 @@ class SnakeEngine:
                 self.score += 1
                 self.apple_spawned = False
                 self.add_snake_body_to_grid()
+                self.current_reward = 100
             else:
                 self.add_snake_body_to_grid()
+                self.current_reward = 0
 
     def check_if_on_apple(self):
         if self.player_pos_list[0] == self.apple_pos:

@@ -165,6 +165,21 @@ class QTable:
     def get_q_value(self, state, action):
         return self.q_table[state][action]
 
+    def get_max_a_q_value(self, state):
+        max_action = "null"
+        max_value = -1
+
+        for action in self.list_of_actions:
+            if self.get_q_value(state, action) > max_value:
+                max_action = action
+                max_value = self.get_q_value(state, action)
+
+        return max_value
+
+    def update_q_value(self, state, action, value):
+        self.q_table[state][action] = value
+
+    # chooses action randomly given the values from the Q-table
     def choose_action_randomly_given_state(self, state):
         # code used from RinglerShawn_ReinforcementLearning_HW1
         list_of_actions = ['up', 'down', 'left', 'right']
@@ -212,16 +227,55 @@ class QTable:
 
 
 class QLearning:
-    def __init__(self, episode_count):
+    def __init__(self, episode_count, debug_on, visuals_on):
         self.q_table_class = QTable()
         self.episode_count = episode_count
-        self.act_on_episode = ActOnEpisode()
+        self.step_size = 0.9
+        self.discount_value = 0.9
+        self.snake_game = SnakeEngine(10)
+        self.debug_mode = debug_on
+        self.visual_mode = visuals_on
 
-    def learn(self):
+    def learning_loop(self):
         num_of_episodes = 0
+        self.snake_game = SnakeEngine(10)
 
         while num_of_episodes < self.episode_count:
-            self.act_on_episode.run_one_episode(self.q_table_class)
+
+            episode_running = True
+            self.snake_game.start_game_for_steps(self.visual_mode)
+            current_state = self.snake_game.get_current_twelve_boolean_state()
+            episdoe_data = {}
+            step_count = 0
+
+            while episode_running:
+                chosen_action = self.q_table_class.choose_action_randomly_given_state(current_state)
+                self.snake_game.move_player_step(chosen_action)
+                new_state = self.snake_game.get_current_twelve_boolean_state()
+                reward_value = self.snake_game.current_reward
+
+                new_q_value = self.q_table_class.get_q_value(current_state, chosen_action)
+                TD_error = reward_value + self.discount_value * self.q_table_class.get_max_a_q_value(new_state)
+                TD_error -= self.q_table_class.get_q_value(current_state, chosen_action)
+                new_q_value += self.step_size * TD_error
+
+                self.q_table_class.update_q_value(current_state, chosen_action, new_q_value)
+
+                if not self.snake_game.snake_alive:
+                    episode_running = False
+                else:
+                    self.snake_game.refresh_after_step(self.visual_mode)
+
+                episdoe_data[step_count] = [current_state, chosen_action, reward_value, new_state, new_q_value]
+                step_count += 1
+
+            if self.debug_mode:
+                print(episdoe_data)
+
+            num_of_episodes += 1
+
+
+        print(str(self.q_table_class.q_table))
 
 
 class ActOnEpisode:
@@ -230,7 +284,7 @@ class ActOnEpisode:
         self.dict_of_actions_and_states = {}
 
     def run_one_episode(self, q_table_class):
-        self.snake_game.start_game_in_steps(False)
+        self.snake_game.start_game_for_steps(False)
         step_count = 0
 
         while self.snake_game.snake_alive:
@@ -242,18 +296,10 @@ class ActOnEpisode:
 
             self.dict_of_actions_and_states[step_count] = temp_list
 
-            self.snake_game.move_player(chosen_action)
+            self.snake_game.move_player_step(chosen_action)
 
-        return self.dict_of_actions_and_states
+        return self.dict_of_actions_and_states, self.snake_game.score
 
     def reset_episode(self):
         self.snake_game = SnakeEngine(10)
         self.dict_of_actions_and_states = {}
-
-
-
-
-# main function
-
-test_q = QTable()
-print(test_q.q_table)
