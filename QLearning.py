@@ -1,5 +1,5 @@
 import numpy as np
-import random
+import random, json
 from SnakeEngine import SnakeEngine
 
 
@@ -158,6 +158,7 @@ class QTable:
             for action in self.list_of_actions:
                 temp_action_dict[action] = 0.25
             self.q_table[state] = temp_action_dict
+        self.epislon = 0.1
 
     def set_q_value(self, state, action, new_value):
         self.q_table[state][action] = new_value
@@ -176,54 +177,74 @@ class QTable:
 
         return max_value
 
+    def get_max_a_q_value_action(self, state):
+        max_action = self.list_of_actions[0]
+        max_value = self.get_q_value(state, self.list_of_actions[0])
+
+        for action in self.list_of_actions[1::3]:
+            if self.get_q_value(state, action) > max_value:
+                max_action = action
+                max_value = self.get_q_value(state, action)
+
+        if max_action == "null":
+            list_of_actions = ['up', 'down', 'left', 'right']
+
+            # generate a random number between [1, 99]
+            # note: 0 and 100 cannot be used, as it breaks the percentages
+            random_number = random.randint(1, 99)
+
+            # choose the action based on the random action
+            if 0 < random_number <= 25:
+                return list_of_actions[0]
+            elif 25 < random_number <= 50:
+                return list_of_actions[1]
+            elif 50 < random_number <= 75:
+                return list_of_actions[2]
+            elif 75 < random_number < 100:
+                return list_of_actions[3]
+            else:
+                # else something has gone wrong with choosing an action
+                # WARNING: This should never be reachable
+                print("Somethings gone wrong (MAX_action)")
+        else:
+            return max_action
+
     def update_q_value(self, state, action, value):
         self.q_table[state][action] = value
 
     # chooses action randomly given the values from the Q-table
     def choose_action_randomly_given_state(self, state):
-        # code used from RinglerShawn_ReinforcementLearning_HW1
-        list_of_actions = ['up', 'down', 'left', 'right']
+        probability_of_choosing_best = (1 - self.epislon + (self.epislon / 4)) * 100
 
-        # get the values stored in the policy for the four actions
-        first_percentage = self.q_table[state][list_of_actions[0]]
-        second_percentage = self.q_table[state][list_of_actions[1]]
-        third_percentage = self.q_table[state][list_of_actions[2]]
-        fourth_percentage = self.q_table[state][list_of_actions[3]]
+        random_chance = random.randint(0, 100)
 
-        # create a list of these percentages
-        list_of_percentages = [first_percentage, second_percentage, third_percentage, fourth_percentage]
-
-        # sum these percentages up
-        sum_of_percentages = sum(list_of_percentages)
-
-        # normalize these percentages to be on a [0, 100] int scale
-        first_percentage = (first_percentage / sum_of_percentages) * 100
-        second_percentage = (second_percentage / sum_of_percentages) * 100
-        third_percentage = (third_percentage / sum_of_percentages) * 100
-        fourth_percentage = (fourth_percentage / sum_of_percentages) * 100
-
-        # makes the percentages cumulative
-        second_percentage += first_percentage
-        third_percentage += second_percentage
-        fourth_percentage += third_percentage
-
-        # generate a random number between [1, 99]
-        # note: 0 and 100 cannot be used, as it breaks the percentages
-        random_number = random.randint(1, 99)
-
-        # choose the action based on the random action
-        if 0 < random_number <= first_percentage:
-            return list_of_actions[0]
-        elif first_percentage < random_number <= second_percentage:
-            return list_of_actions[1]
-        elif second_percentage < random_number <= third_percentage:
-            return list_of_actions[2]
-        elif third_percentage < random_number <= fourth_percentage:
-            return list_of_actions[3]
+        if random_chance < probability_of_choosing_best:
+            return self.get_max_a_q_value_action(state)
         else:
-            # else something has gone wrong with choosing an action
-            # WARNING: This should never be reachable
-            print("Somethings gone wrong")
+            # code used from RinglerShawn_ReinforcementLearning_HW1
+            list_of_actions = ['up', 'down', 'left', 'right']
+
+            # generate a random number between [1, 99]
+            # note: 0 and 100 cannot be used, as it breaks the percentages
+            random_number = random.randint(1, 99)
+
+            # choose the action based on the random action
+            if 0 < random_number <= 25:
+                return list_of_actions[0]
+            elif 25 < random_number <= 50:
+                return list_of_actions[1]
+            elif 50 < random_number <= 75:
+                return list_of_actions[2]
+            elif 75 < random_number <= 100:
+                return list_of_actions[3]
+            else:
+                # else something has gone wrong with choosing an action
+                # WARNING: This should never be reachable
+                print("Somethings gone wrong (Chosen action randomly)")
+
+    def save_q_table_to_file(self, filename):
+        with open(filename, 'w') as outfile:
+            json.dump(self.q_table, outfile)
 
 
 class QLearning:
@@ -274,8 +295,13 @@ class QLearning:
 
             num_of_episodes += 1
 
-
         print(str(self.q_table_class.q_table))
+
+    def run_optimal_game(self):
+        self.snake_game.run_game_using_policy(self.q_table_class)
+
+    def save_q_table_to_file(self, filename):
+        self.q_table_class.save_q_table_to_file(filename)
 
 
 class ActOnEpisode:

@@ -37,6 +37,23 @@ class SnakeEngine:
             self.event_handler()
         print("Game Over!\nFinal Score was: " + str(self.score))
 
+    def run_game_using_policy(self, q_table):
+        self.start_game_for_steps(True)
+        while self.snake_alive:
+            if not self.apple_spawned:
+                self.spawn_apple_randomly()
+            self.display.draw_grid(self.grid_array)
+
+            if self.space_was_pressed():
+                current_state = self.get_current_twelve_boolean_state()
+                print("Current State: " + str(current_state))
+                chosen_action = q_table.choose_action_randomly_given_state(current_state)
+                print("\tChosen action: " + str(chosen_action))
+                print("\tQTable Values: " + str(q_table.q_table[current_state]))
+                self.move_player_step(chosen_action)
+
+        print("Game Over!\nFinal Score was: " + str(self.score))
+
     def start_game_for_steps(self, display_on):
         self.snake_alive = True
         # creates a int array of zeroes based on the grid size
@@ -52,6 +69,7 @@ class SnakeEngine:
         self.apple_spawned = False
         self.spawn_apple_randomly()
         self.current_reward = 0
+        self.score = 0
         if display_on:
             self.display.draw_grid(self.grid_array)
 
@@ -169,6 +187,20 @@ class SnakeEngine:
                 elif event.key == pygame.K_DOWN:
                     self.move_player_step('down')
 
+    def space_was_pressed(self):
+        button_pressed = False
+        while not button_pressed:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        print("Space was pressed")
+                        button_pressed = True
+                        return True
+        return False
+
     def remove_tail_from_grid(self, state_tuple):
         self.grid_array[state_tuple[0]][state_tuple[1]] = 0
 
@@ -223,7 +255,7 @@ class SnakeEngine:
     def move_tail(self, x, y):
         if self.check_if_on_body_or_wall(x, y):
             self.snake_alive = False
-            self.current_reward = -100
+            self.current_reward = -10
         else:
             for segment in self.player_pos_list:
                 self.remove_tail_from_grid(segment)
