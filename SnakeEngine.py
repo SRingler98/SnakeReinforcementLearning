@@ -28,13 +28,99 @@ class SnakeEngine:
         for snake_part in self.player_pos_list:
             self.grid_array[snake_part[0]][snake_part[1]] = 1
 
-    def run_game(self):
+    def run_game_in_real_time(self):
         while self.snake_alive:
             if not self.apple_spawned:
                 self.spawn_apple_randomly()
             self.display.draw_grid(self.grid_array)
             self.event_handler()
         print("Game Over!\nFinal Score was: " + str(self.score))
+
+    def start_game_in_steps(self, display_on):
+        self.spawn_apple_randomly()
+        if display_on:
+            self.display.draw_grid(self.grid_array)
+
+    def refresh_after_step(self, display_on):
+        if not self.apple_spawned:
+            self.spawn_apple_randomly()
+        self.display.draw_grid(self.grid_array)
+
+    def get_current_twelve_boolean_state(self):
+        temp_string = ""
+        player_pos_x = self.player_pos_list[0][0]
+        player_pos_y = self.player_pos_list[0][1]
+        apple_pos_x = self.apple_pos[0]
+        apple_pos_y = self.apple_pos[1]
+
+        # apple above
+        if apple_pos_y > player_pos_y:
+            temp_string += "1"
+        elif apple_pos_y <= player_pos_y:
+            temp_string += "0"
+
+        # apple below
+        if apple_pos_y < player_pos_y:
+            temp_string += "1"
+        elif apple_pos_y >= player_pos_y:
+            temp_string += "0"
+
+        # apple left
+        if apple_pos_x < player_pos_x:
+            temp_string += "1"
+        elif apple_pos_x >= player_pos_x:
+            temp_string += "0"
+
+        # apple left
+        if apple_pos_x > player_pos_x:
+            temp_string += "1"
+        elif apple_pos_x <= player_pos_x:
+            temp_string += "0"
+
+        if self.grid_array[player_pos_x][player_pos_y - 1] == 1:
+            temp_string += "1"
+        else:
+            temp_string += "0"
+
+        if self.grid_array[player_pos_x][player_pos_y + 1] == 1:
+            temp_string += "1"
+        else:
+            temp_string += "0"
+
+        if self.grid_array[player_pos_x - 1][player_pos_y] == 1:
+            temp_string += "1"
+        else:
+            temp_string += "0"
+
+        if self.grid_array[player_pos_x + 1][player_pos_y] == 1:
+            temp_string += "1"
+        else:
+            temp_string += "0"
+
+        position_difference = (self.player_pos_list[0][0] - self.player_pos_list[1][0],
+                               self.player_pos_list[0][1] - self.player_pos_list[1][1])
+
+        if position_difference == (0, -1):
+            temp_string += "1"
+        else:
+            temp_string += "0"
+
+        if position_difference == (0, 1):
+            temp_string += "1"
+        else:
+            temp_string += "0"
+
+        if position_difference == (-1, 0):
+            temp_string += "1"
+        else:
+            temp_string += "0"
+
+        if position_difference == (1, 0):
+            temp_string += "1"
+        else:
+            temp_string += "0"
+
+        return temp_string
 
     def event_handler(self):
         for event in pygame.event.get():
