@@ -6,7 +6,6 @@
 
 from QLearning import QLearning
 
-RL = QLearning(1000000, debug_on=False, visuals_on=False)
+RL = QLearning(1000000, debug_on=False, visuals_on=False, load_on=True, file_name="q-table.json")
 RL.learning_loop()
-RL.save_q_table_to_file("q-table.json")
 RL.run_optimal_game()

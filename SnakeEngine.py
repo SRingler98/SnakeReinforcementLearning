@@ -38,6 +38,8 @@ class SnakeEngine:
         print("Game Over!\nFinal Score was: " + str(self.score))
 
     def run_game_using_policy(self, q_table):
+        print("Optimal demo is ready to run. Press Space to step through an episode.")
+
         self.start_game_for_steps(True)
         while self.snake_alive:
             if not self.apple_spawned:

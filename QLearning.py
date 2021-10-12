@@ -1,5 +1,6 @@
 import numpy as np
 import random, json
+import matplotlib.pyplot as plt
 from SnakeEngine import SnakeEngine
 
 
@@ -245,10 +246,16 @@ class QTable:
     def save_q_table_to_file(self, filename):
         with open(filename, 'w') as outfile:
             json.dump(self.q_table, outfile)
+            print("Saving q-table file was successful")
+
+    def load_q_table_from_file(self, filename):
+        with open(filename, 'r') as infile:
+            self.q_table = json.load(infile)
+            print("Loading q-table file was successful")
 
 
 class QLearning:
-    def __init__(self, episode_count, debug_on, visuals_on):
+    def __init__(self, episode_count, debug_on, visuals_on, load_on, file_name):
         self.q_table_class = QTable()
         self.episode_count = episode_count
         self.step_size = 0.9
@@ -257,9 +264,13 @@ class QLearning:
         self.debug_mode = debug_on
         self.visual_mode = visuals_on
 
+        if load_on:
+            self.q_table_class.load_q_table_from_file(file_name)
+
     def learning_loop(self):
         num_of_episodes = 0
         self.snake_game = SnakeEngine(10)
+        list_of_scores = []
 
         while num_of_episodes < self.episode_count:
 
@@ -294,8 +305,13 @@ class QLearning:
                 print(episdoe_data)
 
             num_of_episodes += 1
+            list_of_scores.append(self.snake_game.score)
 
-        print(str(self.q_table_class.q_table))
+        plt.plot(list_of_scores)
+        plt.ylabel('Score')
+        plt.xlabel('Episodes')
+        plt.show()
+        print("Event Log: Training has finished.")
 
     def run_optimal_game(self):
         self.snake_game.run_game_using_policy(self.q_table_class)
