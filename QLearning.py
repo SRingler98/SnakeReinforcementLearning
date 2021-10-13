@@ -255,17 +255,24 @@ class QTable:
 
 
 class QLearning:
-    def __init__(self, episode_count, debug_on, visuals_on, load_on, file_name):
+    def __init__(self, episode_count, debug_on, visuals_on_while_training, load_on, save_on, file_name,
+                 show_score_plot, training_on):
         self.q_table_class = QTable()
         self.episode_count = episode_count
         self.step_size = 0.9
         self.discount_value = 0.9
         self.snake_game = SnakeEngine(10)
         self.debug_mode = debug_on
-        self.visual_mode = visuals_on
+        self.visual_mode = visuals_on_while_training
 
         if load_on:
             self.q_table_class.load_q_table_from_file(file_name)
+        self.save_mode = save_on
+        self.file_name = file_name
+        self.show_score_plot = show_score_plot
+
+        if training_on:
+            self.learning_loop()
 
     def learning_loop(self):
         num_of_episodes = 0
@@ -307,14 +314,17 @@ class QLearning:
             num_of_episodes += 1
             list_of_scores.append(self.snake_game.score)
 
-        plt.plot(list_of_scores)
-        plt.ylabel('Score')
-        plt.xlabel('Episodes')
-        plt.show()
+        if self.show_score_plot:
+            plt.plot(list_of_scores)
+            plt.ylabel('Score')
+            plt.xlabel('Episodes')
+            plt.show()
         print("Event Log: Training has finished.")
+        if self.save_mode:
+            self.q_table_class.save_q_table_to_file(self.file_name)
 
-    def run_optimal_game(self):
-        self.snake_game.run_game_using_policy(self.q_table_class)
+    def run_optimal_game(self, n_times=1):
+        self.snake_game.run_game_using_policy(self.q_table_class, n_times)
 
     def save_q_table_to_file(self, filename):
         self.q_table_class.save_q_table_to_file(filename)
