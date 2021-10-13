@@ -62,6 +62,7 @@ class SnakeEngine:
             print("Game Over!\nFinal Score was: " + str(self.score))
 
             self.grid_array[self.player_pos_list[0][0]][self.player_pos_list[0][1]] = 3
+            self.current_state = self.get_current_twelve_boolean_state()
 
             self.space_was_pressed()
 
