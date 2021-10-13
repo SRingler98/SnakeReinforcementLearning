@@ -51,6 +51,7 @@ class Colors:
         self.red = (255, 0, 0)
         self.green = (0, 255, 0)
         self.gray = (100, 100, 100)
+        self.purple = (255, 0, 255)
 
 
 # display grid class displays the grid of the grid to the screen
@@ -69,7 +70,7 @@ class DisplayGrid:
         self.q_was_pressed = False
         self.x_was_pressed = False
 
-    def draw_grid(self, grid):
+    def draw_grid(self, grid, state_string):
         # draw the empty grid first
         for x in range(self.grid_size):
             for y in range(self.grid_size):
@@ -100,8 +101,74 @@ class DisplayGrid:
                     self.block_size)
                 pygame.draw.rect(self.screen, self.colors.white, rect, 1)
 
+        self.draw_game_stats(state_string)
+
+        for x in range(self.grid_size):
+            for y in range(self.grid_size):
+                maze_test_value = grid[x][y]
+                if maze_test_value == 3:
+                    rect = pygame.Rect(
+                        x * self.block_size,
+                        y * self.block_size,
+                        self.block_size,
+                        self.block_size
+                    )
+                    pygame.draw.rect(self.screen, self.colors.purple, rect)
+
         # update the display
         pygame.display.update()
+
+    def draw_game_stats(self, state_string):
+        offset = 525
+        new_block_size = 35
+
+        count = 0
+        for item in range(1, 13):
+            rect = pygame.Rect(
+                525,
+                new_block_size * item,
+                new_block_size,
+                new_block_size
+            )
+            color_choice = self.colors.red
+
+            if state_string[count] == "0":
+                color_choice = self.colors.black
+            elif state_string[count] == "1":
+                color_choice = self.colors.green
+
+            pygame.draw.rect(self.screen, color_choice, rect)
+
+            rect = pygame.Rect(
+                525,
+                new_block_size * item,
+                new_block_size,
+                new_block_size
+            )
+
+            pygame.draw.rect(self.screen, self.colors.white, rect, 1)
+            count += 1
+
+        font = pygame.font.SysFont('arial', 16)
+
+        list_of_strings = ["Apple Down",
+                           "Apple Up",
+                           "Apple Left",
+                           "Apple Right",
+                           "Wall Up",
+                           "Wall Down",
+                           "Wall Left",
+                           "Wall Right",
+                           "Snake Facing Up",
+                           "Snake Facing Down",
+                           "Snake Facing Left",
+                           "Snake Facing Right"]
+
+        count = 1
+        for string in list_of_strings:
+            self.screen.blit(font.render(string, True, self.colors.white),
+                             (580, new_block_size * count + 5))
+            count += 1
 
     # draw the player object onto the grid
     def draw_player_and_apple(self, grid):

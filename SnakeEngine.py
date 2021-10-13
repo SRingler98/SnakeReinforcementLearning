@@ -24,6 +24,7 @@ class SnakeEngine:
         self.score = 0
         self.snake_alive = True
         self.current_reward = 0
+        self.current_state = self.get_current_twelve_boolean_state()
 
     def add_snake_body_to_grid(self):
         for snake_part in self.player_pos_list:
@@ -33,7 +34,7 @@ class SnakeEngine:
         while self.snake_alive:
             if not self.apple_spawned:
                 self.spawn_apple_randomly()
-            self.display.draw_grid(self.grid_array)
+            self.display.draw_grid(self.grid_array, self.current_state)
             self.event_handler()
         print("Game Over!\nFinal Score was: " + str(self.score))
 
@@ -47,17 +48,23 @@ class SnakeEngine:
             while self.snake_alive:
                 if not self.apple_spawned:
                     self.spawn_apple_randomly()
-                self.display.draw_grid(self.grid_array)
+                self.display.draw_grid(self.grid_array, self.current_state)
 
                 if self.space_was_pressed():
-                    current_state = self.get_current_twelve_boolean_state()
-                    print("Current State: " + str(current_state))
-                    chosen_action = q_table.choose_action_randomly_given_state(current_state)
+                    self.current_state = self.get_current_twelve_boolean_state()
+                    print("Current State: " + str(self.current_state))
+                    chosen_action = q_table.choose_action_randomly_given_state(self.current_state)
                     print("\tChosen action: " + str(chosen_action))
-                    print("\tQTable Values: " + str(q_table.q_table[current_state]))
+                    print("\tQTable Values: " + str(q_table.q_table[self.current_state]))
                     self.move_player_step(chosen_action)
+                    self.current_state = self.get_current_twelve_boolean_state()
 
             print("Game Over!\nFinal Score was: " + str(self.score))
+
+            self.grid_array[self.player_pos_list[0][0]][self.player_pos_list[0][1]] = 3
+
+            self.space_was_pressed()
+
             optimal_runs += 1
 
     def start_game_for_steps(self, display_on):
@@ -75,15 +82,16 @@ class SnakeEngine:
         self.apple_spawned = False
         self.spawn_apple_randomly()
         self.current_reward = 0
+        self.current_state = self.get_current_twelve_boolean_state()
         self.score = 0
         if display_on:
-            self.display.draw_grid(self.grid_array)
+            self.display.draw_grid(self.grid_array, self.current_state)
 
     def refresh_after_step(self, display_on):
         if not self.apple_spawned:
             self.spawn_apple_randomly()
         if display_on:
-            self.display.draw_grid(self.grid_array)
+            self.display.draw_grid(self.grid_array, self.current_state)
 
     def get_current_twelve_boolean_state(self):
         temp_string = ""
@@ -194,6 +202,7 @@ class SnakeEngine:
                     self.move_player_step('down')
 
     def space_was_pressed(self):
+        self.display.draw_grid(self.grid_array, self.current_state)
         button_pressed = False
         while not button_pressed:
             for event in pygame.event.get():

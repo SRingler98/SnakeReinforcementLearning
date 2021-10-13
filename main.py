@@ -6,13 +6,13 @@
 
 from QLearning import QLearning
 
-RL = QLearning(10000000,
+RL = QLearning(100,
                debug_on=False,
-               visuals_on_while_training=False,
+               visuals_on_while_training=True,
                load_on=True,
-               save_on=True,
+               save_on=False,
                file_name="better-q-table.json",
-               show_score_plot=True,
+               show_score_plot=False,
                training_on=True)
 
 RL.run_optimal_game(n_times=10)
