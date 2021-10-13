@@ -30,6 +30,8 @@ class SnakeEngine:
         for snake_part in self.player_pos_list:
             self.grid_array[snake_part[0]][snake_part[1]] = 1
 
+        self.grid_array[self.player_pos_list[0][0]][self.player_pos_list[0][1]] = 4
+
     def run_game_in_real_time(self):
         while self.snake_alive:
             if not self.apple_spawned:

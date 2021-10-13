@@ -52,6 +52,7 @@ class Colors:
         self.green = (0, 255, 0)
         self.gray = (100, 100, 100)
         self.purple = (255, 0, 255)
+        self.dark_green = (0, 150, 0)
 
 
 # display grid class displays the grid of the grid to the screen
@@ -183,7 +184,7 @@ class DisplayGrid:
                         self.block_size,
                         self.block_size
                     )
-                    pygame.draw.rect(self.screen, self.colors.green, rect)
+                    pygame.draw.rect(self.screen, self.colors.dark_green, rect)
                 elif maze_test_value == 2:
                     rect = pygame.Rect(
                         x * self.block_size,
@@ -192,6 +193,14 @@ class DisplayGrid:
                         self.block_size
                     )
                     pygame.draw.rect(self.screen, self.colors.red, rect)
+                elif maze_test_value == 4:
+                    rect = pygame.Rect(
+                        x * self.block_size,
+                        y * self.block_size,
+                        self.block_size,
+                        self.block_size
+                    )
+                    pygame.draw.rect(self.screen, self.colors.green , rect)
 
     # look to see if the space bar is pressed down or not
     def is_space_pressed_down(self):
