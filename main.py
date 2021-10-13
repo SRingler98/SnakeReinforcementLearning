@@ -9,10 +9,10 @@ from QLearning import QLearning
 RL = QLearning(1000000,
                debug_on=False,
                visuals_on_while_training=False,
-               load_on=True,
+               load_on=False,
                save_on=True,
-               file_name="better-q-table.json",
-               show_score_plot=False,
+               file_name="Higher_failure-q-table.json",
+               show_score_plot=True,
                training_on=True)
 
 RL.run_optimal_game(n_times=10)

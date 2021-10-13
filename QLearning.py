@@ -306,13 +306,12 @@ class QLearning:
                 self.q_table_class.update_q_value(current_state, chosen_action, new_q_value)
 
                 if not self.snake_game.snake_alive:
-                    episode_running = False
-                    self.snake_game.refresh_after_step(self.visual_mode)
+                    stop_training_this_episode = True
                 else:
                     self.snake_game.refresh_after_step(self.visual_mode)
 
-                if not episode_running:
-                    stop_training_this_episode = True
+                # if not episode_running:
+                #     stop_training_this_episode = True
 
                 if self.debug_mode:
                     print("\tStep: " + str(step_count))
@@ -340,6 +339,33 @@ class QLearning:
             plt.ylabel('Score')
             plt.xlabel('Episodes')
             plt.show()
+
+            x_average = []
+            for x in range(0, 100):
+                x_average.append(x)
+
+            score_average = []
+
+            divide_by = len(list_of_scores) / 100
+
+            if divide_by > 0:
+                score_average_step = int(len(list_of_scores) / divide_by)
+                score_step_count = 0
+                for step in range(score_average_step):
+                    first_point = score_step_count * score_average_step
+                    second_point = (score_step_count + 1) * score_average_step
+                    temp_sum = sum(list_of_scores[first_point::second_point])
+                    temp_avg = temp_sum / score_average_step
+                    score_average.append(temp_avg)
+                    score_step_count += 1
+
+                plt.scatter(x_average, score_average)
+                plt.ylabel('Average Score')
+                plt.xlabel('Episodes')
+                plt.show()
+            else:
+                print("Warning: List of episodes too short to make an average graph.")
+
         print("Event Log: Training has finished.")
         if self.debug_mode:
             print(str(self.q_table_class.q_table))

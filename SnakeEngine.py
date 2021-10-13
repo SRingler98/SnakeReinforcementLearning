@@ -271,7 +271,7 @@ class SnakeEngine:
     def move_tail(self, x, y):
         if self.check_if_on_body_or_wall(x, y):
             self.snake_alive = False
-            self.current_reward = -10
+            self.current_reward = -100
         else:
             for segment in self.player_pos_list:
                 self.remove_tail_from_grid(segment)
