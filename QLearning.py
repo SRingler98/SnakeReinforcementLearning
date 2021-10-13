@@ -159,7 +159,7 @@ class QTable:
             for action in self.list_of_actions:
                 temp_action_dict[action] = 0.25
             self.q_table[state] = temp_action_dict
-        self.epislon = 0.1
+        self.epsilon = 0.1
 
     def set_q_value(self, state, action, new_value):
         self.q_table[state][action] = new_value
@@ -167,7 +167,7 @@ class QTable:
     def get_q_value(self, state, action):
         return self.q_table[state][action]
 
-    def get_max_a_q_value(self, state):
+    def get_max_a_q_value_and_action(self, state):
         max_action = "null"
         max_value = -1
 
@@ -176,13 +176,13 @@ class QTable:
                 max_action = action
                 max_value = self.get_q_value(state, action)
 
-        return max_value
+        return max_value, max_action
 
     def get_max_a_q_value_action(self, state):
         max_action = self.list_of_actions[0]
         max_value = self.get_q_value(state, self.list_of_actions[0])
 
-        for action in self.list_of_actions[1::3]:
+        for action in self.list_of_actions:
             if self.get_q_value(state, action) > max_value:
                 max_action = action
                 max_value = self.get_q_value(state, action)
@@ -215,7 +215,7 @@ class QTable:
 
     # chooses action randomly given the values from the Q-table
     def choose_action_randomly_given_state(self, state):
-        probability_of_choosing_best = (1 - self.epislon + (self.epislon / 4)) * 100
+        probability_of_choosing_best = (1 - self.epsilon + (self.epsilon / 4)) * 100
 
         random_chance = random.randint(0, 100)
 
@@ -282,19 +282,24 @@ class QLearning:
         while num_of_episodes < self.episode_count:
 
             episode_running = True
+            stop_training_this_episode = False
             self.snake_game.start_game_for_steps(self.visual_mode)
             current_state = self.snake_game.get_current_twelve_boolean_state()
-            episdoe_data = {}
+            episode_data = {}
             step_count = 0
 
-            while episode_running:
+            if self.debug_mode:
+                print("Episode num: " + str(num_of_episodes))
+
+            while not stop_training_this_episode:
                 chosen_action = self.q_table_class.choose_action_randomly_given_state(current_state)
                 self.snake_game.move_player_step(chosen_action)
                 new_state = self.snake_game.get_current_twelve_boolean_state()
                 reward_value = self.snake_game.current_reward
 
                 new_q_value = self.q_table_class.get_q_value(current_state, chosen_action)
-                TD_error = reward_value + self.discount_value * self.q_table_class.get_max_a_q_value(new_state)
+                max_a_q_value_tuple = self.q_table_class.get_max_a_q_value_and_action(new_state)
+                TD_error = reward_value + self.discount_value * max_a_q_value_tuple[0]
                 TD_error -= self.q_table_class.get_q_value(current_state, chosen_action)
                 new_q_value += self.step_size * TD_error
 
@@ -302,26 +307,64 @@ class QLearning:
 
                 if not self.snake_game.snake_alive:
                     episode_running = False
+                    self.snake_game.refresh_after_step(self.visual_mode)
                 else:
                     self.snake_game.refresh_after_step(self.visual_mode)
 
-                episdoe_data[step_count] = [current_state, chosen_action, reward_value, new_state, new_q_value]
+                if not episode_running:
+                    stop_training_this_episode = True
+
+                if self.debug_mode:
+                    print("\tStep: " + str(step_count))
+                    print("\t\tCurrent State: " + str(current_state))
+                    print("\t\tNext State" + str(new_state))
+                    print("\t\tAction: " + str(chosen_action))
+                    print("\t\tReward: " + str(reward_value))
+                    print("\t\tQ-table: " + str(self.q_table_class.q_table[current_state]))
+
+                current_state = new_state
+                episode_data[step_count] = [current_state, chosen_action, reward_value, new_state, new_q_value]
                 step_count += 1
 
             if self.debug_mode:
-                print(episdoe_data)
+                print(episode_data)
 
             num_of_episodes += 1
             list_of_scores.append(self.snake_game.score)
 
         if self.show_score_plot:
-            plt.plot(list_of_scores)
+            x_values = []
+            for x in range(num_of_episodes):
+                x_values.append(x)
+            plt.scatter(x_values, list_of_scores)
             plt.ylabel('Score')
             plt.xlabel('Episodes')
             plt.show()
         print("Event Log: Training has finished.")
+        if self.debug_mode:
+            print(str(self.q_table_class.q_table))
         if self.save_mode:
             self.q_table_class.save_q_table_to_file(self.file_name)
+            self.save_score_list_to_file(self.file_name, list_of_scores)
+
+    def save_score_list_to_file(self, file_name, list_of_scores):
+        name_of_file = ""
+        extension_name = ""
+        count = 0
+        for letter in file_name:
+            if letter == '.':
+                break
+            else:
+                count += 1
+
+        name_of_file = file_name[0::count]
+        extension_name = file_name[count::]
+
+        new_file_name = name_of_file + "_scores" + extension_name
+
+        with open(new_file_name, 'w') as outfile:
+            json.dump(list_of_scores, outfile)
+            print("Saving scores file was successful")
 
     def run_optimal_game(self, n_times=1):
         self.snake_game.run_game_using_policy(self.q_table_class, n_times)

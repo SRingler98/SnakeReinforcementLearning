@@ -6,12 +6,12 @@
 
 from QLearning import QLearning
 
-RL = QLearning(1000000,
+RL = QLearning(10000000,
                debug_on=False,
                visuals_on_while_training=False,
                load_on=True,
                save_on=True,
-               file_name="q-table.json",
+               file_name="better-q-table.json",
                show_score_plot=True,
                training_on=True)
 

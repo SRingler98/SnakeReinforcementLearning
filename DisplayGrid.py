@@ -60,7 +60,7 @@ class DisplayGrid:
         self.block_size = block_size
         self.grid_size = size_in
         pygame.init()
-        self.size = 500, 500
+        self.size = 1000, 500
         self.colors = Colors()
         self.screen = pygame.display.set_mode(self.size)
         self.screen.fill(self.colors.black)
