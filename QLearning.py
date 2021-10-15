@@ -214,14 +214,18 @@ class QTable:
         self.q_table[state][action] = value
 
     # chooses action randomly given the values from the Q-table
-    def choose_action_randomly_given_state(self, state):
+    def choose_action_randomly_given_state(self, state, show_choice=False):
         probability_of_choosing_best = (1 - self.epsilon + (self.epsilon / 4)) * 100
 
         random_chance = random.randint(0, 100)
 
         if random_chance < probability_of_choosing_best:
+            if show_choice:
+                print("\tChoose Optimally")
             return self.get_max_a_q_value_action(state)
         else:
+            if show_choice:
+                print("\tChoose Randomly")
             # code used from RinglerShawn_ReinforcementLearning_HW1
             list_of_actions = ['up', 'down', 'left', 'right']
 
@@ -242,6 +246,9 @@ class QTable:
                 # else something has gone wrong with choosing an action
                 # WARNING: This should never be reachable
                 print("Somethings gone wrong (Chosen action randomly)")
+
+    def choose_action_optimally(self, state):
+        return self.get_max_a_q_value_action(state)
 
     def save_q_table_to_file(self, filename):
         with open(filename, 'w') as outfile:
@@ -338,6 +345,11 @@ class QLearning:
             plt.scatter(x_values, list_of_scores)
             plt.ylabel('Score')
             plt.xlabel('Episodes')
+
+            z = np.polyfit(x_values, list_of_scores, 1)
+            p = np.poly1d(z)
+            plt.plot(x_values, p(x_values), "r--")
+
             plt.show()
 
             x_average = []

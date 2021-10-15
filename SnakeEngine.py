@@ -55,7 +55,7 @@ class SnakeEngine:
                 if self.space_was_pressed():
                     self.current_state = self.get_current_twelve_boolean_state()
                     print("Current State: " + str(self.current_state))
-                    chosen_action = q_table.choose_action_randomly_given_state(self.current_state)
+                    chosen_action = q_table.choose_action_optimally(self.current_state)
                     print("\tChosen action: " + str(chosen_action))
                     print("\tQTable Values: " + str(q_table.q_table[self.current_state]))
                     self.move_player_step(chosen_action)
