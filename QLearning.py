@@ -407,6 +407,9 @@ class QLearning:
     def run_optimal_game(self, n_times=1):
         self.snake_game.run_game_using_policy(self.q_table_class, n_times)
 
+    def run_optimal_game_graph(self, n_times=1000):
+        self.snake_game.run_game_using_policy_and_generate_graph_then_demo(self.q_table_class, n_times)
+
     def save_q_table_to_file(self, filename):
         self.q_table_class.save_q_table_to_file(filename)
 

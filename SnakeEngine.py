@@ -1,6 +1,7 @@
 import sys, random
 import numpy as np
 import pygame
+import matplotlib.pyplot as plt
 from DisplayGrid import DisplayGrid as DG
 
 
@@ -69,6 +70,47 @@ class SnakeEngine:
             self.space_was_pressed()
 
             optimal_runs += 1
+
+    def run_game_using_policy_and_generate_graph_then_demo(self, q_table, n_times):
+        print("Generating Optimal Data")
+
+        optimal_runs = 0
+        score_list = []
+
+        while optimal_runs < n_times:
+            self.start_game_for_steps(False)
+            step_count = 0
+            while self.snake_alive:
+                if not self.apple_spawned:
+                    self.spawn_apple_randomly()
+                # self.display.draw_grid(self.grid_array, self.current_state)
+
+                self.current_state = self.get_current_twelve_boolean_state()
+
+                chosen_action = q_table.choose_action_optimally(self.current_state)
+                self.move_player_step(chosen_action)
+                self.current_state = self.get_current_twelve_boolean_state()
+
+                step_count += 1
+
+                if step_count > 200:
+                    self.snake_alive = False
+
+            self.grid_array[self.player_pos_list[0][0]][self.player_pos_list[0][1]] = 3
+            self.current_state = self.get_current_twelve_boolean_state()
+
+            score_list.append(self.score)
+
+            optimal_runs += 1
+
+        x_values = []
+        for x in range(n_times):
+            x_values.append(x)
+
+        plt.scatter(x_values, score_list)
+        plt.show()
+
+        self.run_game_using_policy(q_table, 10)
 
     def start_game_for_steps(self, display_on):
         self.snake_alive = True
