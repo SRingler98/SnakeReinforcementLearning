@@ -6,7 +6,7 @@
 
 from QLearning import QLearning
 
-RL = QLearning(10000,
+RL = QLearning(1000000,
                debug_on=False,
                visuals_on_while_training=False,
                load_on=False,

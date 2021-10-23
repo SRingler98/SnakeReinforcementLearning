@@ -347,6 +347,7 @@ class QLearning:
             plt.scatter(x_values, list_of_scores)
             plt.ylabel('Score')
             plt.xlabel('Episodes')
+            plt.title('Total Reward')
 
             z = np.polyfit(x_values, list_of_scores, 1)
             p = np.poly1d(z)
