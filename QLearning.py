@@ -382,7 +382,7 @@ class QLearning:
             #     print("Warning: List of episodes too short to make an average graph.")
             x_values = []
 
-        #print("Event Log: Training has finished.")
+        print("Event Log: Training has finished.")
         
         if self.debug_mode:
             print(str(self.q_table_class.q_table))
@@ -390,7 +390,75 @@ class QLearning:
             self.q_table_class.save_q_table_to_file(self.file_name)
             self.save_score_list_to_file(self.file_name, list_of_scores)
 
-    def learning_loop_create_graphs(self):
+    def learning_loop_create_graphs(self, n_optimals):
+        num_of_episodes = 0
+        self.snake_game = SnakeEngine(10)
+
+        learning_scores = [] #holds the score achieved in each training episode
+        avg_scores = []      #holds the averages for optimal runs of every training episode iteration
+
+        while num_of_episodes < self.episode_count:
+
+            print("Episode " + str(num_of_episodes) + " of " + str(self.episode_count))
+
+            episode_running = True
+            stop_training_this_episode = False
+            self.snake_game.start_game_for_steps(self.visual_mode)
+            current_state = self.snake_game.get_current_twelve_boolean_state()
+            episode_data = {}
+            step_count = 0
+
+            while not stop_training_this_episode:
+                chosen_action = self.q_table_class.choose_action_randomly_given_state(current_state)
+                self.snake_game.move_player_step(chosen_action)
+                new_state = self.snake_game.get_current_twelve_boolean_state()
+                reward_value = self.snake_game.current_reward
+
+                new_q_value = self.q_table_class.get_q_value(current_state, chosen_action)
+                max_a_q_value_tuple = self.q_table_class.get_max_a_q_value_and_action(new_state)
+                TD_error = reward_value + self.discount_value * max_a_q_value_tuple[0]
+                TD_error -= self.q_table_class.get_q_value(current_state, chosen_action)
+                new_q_value += self.step_size * TD_error
+
+                self.q_table_class.update_q_value(current_state, chosen_action, new_q_value)
+
+                if not self.snake_game.snake_alive:
+                    stop_training_this_episode = True
+                else:
+                    self.snake_game.refresh_after_step(self.visual_mode)
+
+                current_state = new_state
+                episode_data[step_count] = [current_state, chosen_action, reward_value, new_state, new_q_value]
+                step_count += 1
+
+            num_of_episodes += 1
+
+            learning_scores.append(self.snake_game.score)   #add the current episode's score
+
+            #scores over n optimal runs using the current q-table
+            scores = self.run_optimal_game_and_return_scores(n_times=n_optimals)
+            avg = stat.mean(scores) #average of all of the n scores
+
+            avg_scores.append(avg)
+            
+        ep_count = []
+        for i in range(0, self.episode_count):
+            ep_count.append(i+1)
+        plt.scatter(ep_count, avg_scores)
+        plt.xlabel("Episodes Trained")
+        plt.ylabel("Average Score")
+        plt.title("Average Scores over Training Episodes")
+
+        z = np.polyfit(ep_count, avg_scores, 4)
+        p = np.polyval(z, ep_count)
+        plt.plot(ep_count, p, "r--")
+
+        plt.show()
+
+        print("Event Log: Training and graphing has finished.")
+
+    
+    def learning_loop_create_data(self, n_optimals):
         num_of_episodes = 0
         self.snake_game = SnakeEngine(10)
 
@@ -434,26 +502,14 @@ class QLearning:
             learning_scores.append(self.snake_game.score)   #add the current episode's score
 
             #scores over n optimal runs using the current q-table
-            scores = self.run_optimal_game_and_return_scores(n_times=100)
+            scores = self.run_optimal_game_and_return_scores(n_times=n_optimals)
             avg = stat.mean(scores) #average of all of the n scores
 
             avg_scores.append(avg)
-            
-        ep_count = []
-        for i in range(0, self.episode_count):
-            ep_count.append(i+1)
-        plt.scatter(ep_count, avg_scores)
-        plt.xlabel("Episodes Trained")
-        plt.ylabel("Average Score")
-        plt.title("Average Scores over Training Episodes")
 
-        #z = np.polyfit(ep_count, avg_scores, 3)
-        #p = np.polyval(z, ep_count)
-        #plt.plot(ep_count, p, "r--")
+        print("Event Log: Training has finished and average scores returned.")
 
-        plt.show()
-
-        print("Event Log: Training and graphing has finished.")
+        return avg_scores
 
 
     def save_score_list_to_file(self, file_name, list_of_scores):
