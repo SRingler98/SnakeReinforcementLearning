@@ -112,35 +112,44 @@ class SnakeEngine:
 
         self.run_game_using_policy(q_table, 10)
 
-    def run_game_using_policy(self, q_table, n_times):
-        print("Optimal demo is ready to run. Press Space to step through an episode.")
+    def run_game_using_policy_and_return_scores(self, q_table, n_times):
+        """
+        Runs the Snake game using the policy supplied.
+        No exploration. Only optimal choices.
+        Dies if caught in a loop.
+        Returns a list of scores for all of the games.
+        """
 
         optimal_runs = 0
+        score_list = []
 
         while optimal_runs < n_times:
-            self.start_game_for_steps(True)
+            self.start_game_for_steps(False)
+            step_count = 0
             while self.snake_alive:
                 if not self.apple_spawned:
                     self.spawn_apple_randomly()
-                self.display.draw_grid(self.grid_array, self.current_state)
+                # self.display.draw_grid(self.grid_array, self.current_state)
 
-                if self.space_was_pressed():
-                    self.current_state = self.get_current_twelve_boolean_state()
-                    print("Current State: " + str(self.current_state))
-                    chosen_action = q_table.choose_action_optimally(self.current_state)
-                    print("\tChosen action: " + str(chosen_action))
-                    print("\tQTable Values: " + str(q_table.q_table[self.current_state]))
-                    self.move_player_step(chosen_action)
-                    self.current_state = self.get_current_twelve_boolean_state()
+                self.current_state = self.get_current_twelve_boolean_state()
 
-            print("Game Over!\nFinal Score was: " + str(self.score))
+                chosen_action = q_table.choose_action_optimally(self.current_state)
+                self.move_player_step(chosen_action)
+                self.current_state = self.get_current_twelve_boolean_state()
+
+                step_count += 1
+
+                if step_count > 200:    #snake caught in loop
+                    self.snake_alive = False
 
             self.grid_array[self.player_pos_list[0][0]][self.player_pos_list[0][1]] = 3
             self.current_state = self.get_current_twelve_boolean_state()
 
-            self.space_was_pressed()
+            score_list.append(self.score)
 
             optimal_runs += 1
+
+        return score_list
 
 
     def start_game_for_steps(self, display_on):
