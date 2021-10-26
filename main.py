@@ -12,7 +12,7 @@ import time
 from QLearning import QLearning
 from Graphing import learning_loop_multiple_agents_create_graph
 
-"""RL = QLearning(3000,
+"""RL = QLearning(100,
                debug_on=False,
                visuals_on_while_training=False,
                load_on=False,
