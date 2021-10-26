@@ -10,7 +10,7 @@ import numpy as np
 import statistics as stat
 import time
 from QLearning import QLearning
-from graphing import learning_loop_multiple_agents_create_graph
+from Graphing import learning_loop_multiple_agents_create_graph
 
 """RL = QLearning(3000,
                debug_on=False,
