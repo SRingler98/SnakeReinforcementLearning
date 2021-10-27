@@ -2,7 +2,7 @@
 
 Authors: Shawn Ringler and Frankie Torres
 
-<img src="https://urbantropics.com/wp-content/uploads/2020/05/IMG_7746.jpg" width="300">
+<img src="https://www.worldlandtrust.org/wp-content/uploads/2017/10/snake-banner-guatemala.jpg" width="900">
 
 ## Intro
 
