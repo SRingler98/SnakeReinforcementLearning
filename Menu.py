@@ -1,5 +1,4 @@
 # Start menu to make the program easier to work with
-from matplotlib.pyplot import get
 from SnakeEngine import *
 from QLearning import *
 from Graphing import *
