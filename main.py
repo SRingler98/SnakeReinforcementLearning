@@ -8,9 +8,11 @@ from typing import final
 from matplotlib import pyplot as plt
 import numpy as np
 import statistics as stat
-import time
 from QLearning import QLearning
 from Graphing import learning_loop_multiple_agents_create_graph
+from Menu import *
+
+menu()
 
 """RL = QLearning(100,
                debug_on=False,
@@ -26,4 +28,4 @@ from Graphing import learning_loop_multiple_agents_create_graph
 
 #RL.learning_loop_create_graphs(5)
 
-learning_loop_multiple_agents_create_graph(100, 1, 10)
+#learning_loop_multiple_agents_create_graph(100, 1, 10)
