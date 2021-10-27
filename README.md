@@ -2,6 +2,8 @@
 
 Authors: Shawn Ringler and Frankie Torres
 
+<img src="https://urbantropics.com/wp-content/uploads/2020/05/IMG_7746.jpg" width="300">
+
 ## Intro
 
 This project contains implementations of Reinforcement Learning methods for the classic game Snake. We have implemented our own Snake game 
