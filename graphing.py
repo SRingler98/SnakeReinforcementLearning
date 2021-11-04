@@ -30,7 +30,7 @@ def learning_loop_multiple_agents_create_graph(episodes, agents, optimals):
                 visuals_on_while_training=False,
                 load_on=False,
                 save_on=False,
-                file_name="",
+                file_name="saved_tables/10mil.json",
                 show_score_plot=False,
                 training_on=False)
 
@@ -55,9 +55,9 @@ def learning_loop_multiple_agents_create_graph(episodes, agents, optimals):
     plt.xlabel("Episodes Trained")
     plt.ylabel("Average Score")
     plt.title("Average Scores over Training Episodes")
-    #z = np.polyfit(ep_count, final_avgs, 2)
-    #p = np.polyval(z, ep_count)
-    #plt.plot(ep_count, p, "r--")
+    z = np.polyfit(ep_count, final_avgs, 1)
+    p = np.polyval(z, ep_count)
+    plt.plot(ep_count, p, "r--")
     plt.show()
 
 def graph_performance():

@@ -449,7 +449,7 @@ class QLearning:
         plt.ylabel("Average Score")
         plt.title("Average Scores over Training Episodes")
 
-        z = np.polyfit(ep_count, avg_scores, 4)
+        z = np.polyfit(ep_count, avg_scores, 1)
         p = np.polyval(z, ep_count)
         plt.plot(ep_count, p, "r--")
 
