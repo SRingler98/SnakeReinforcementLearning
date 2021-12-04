@@ -71,7 +71,7 @@ class DisplayGrid:
         self.q_was_pressed = False
         self.x_was_pressed = False
 
-    def draw_grid(self, grid, state_string):
+    def draw_grid(self, grid):
         # draw the empty grid first
         for x in range(self.grid_size):
             for y in range(self.grid_size):
@@ -102,7 +102,7 @@ class DisplayGrid:
                     self.block_size)
                 pygame.draw.rect(self.screen, self.colors.white, rect, 1)
 
-        self.draw_game_stats(state_string)
+        # self.draw_game_stats(state_string)
 
         for x in range(self.grid_size):
             for y in range(self.grid_size):

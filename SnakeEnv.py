@@ -272,3 +272,6 @@ class SnakeEnv:
     def get_terminal_state(self):
         return not self.snake_alive
 
+    def render(self):
+        self.display.draw_grid(self.grid_array)
+

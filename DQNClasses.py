@@ -328,7 +328,7 @@ class DQNLearning:
             policy_used = 0
             # self.epsilon = 1 - (current_episode_count / self.episode_count)
             total_reward = 0
-            while state != self.env.get_terminal_state():
+            while not self.env.get_terminal_state():
                 state = self.env.current_state
                 prob = (1 - self.epsilon + (self.epsilon / self.env.action_space_size)) * 100
                 # prob = self.epsilon * 100
@@ -337,7 +337,7 @@ class DQNLearning:
                 action = "null"
                 max_action_number = -1
 
-                state_list = [[state[0], state[1]]]
+                state_list = [state]
 
                 if rand <= prob:
                     if debug:
@@ -374,7 +374,7 @@ class DQNLearning:
                         next_state_batch_list = []
 
                         for item in next_state_batch:
-                            next_state_batch_list.append([[item[0], item[1]]])
+                            next_state_batch_list.append([item])
 
                         next_state_batch_tf_tensor = tf.convert_to_tensor(next_state_batch_list, dtype=tf.float32)
 
@@ -436,7 +436,7 @@ class DQNLearning:
                 else:
                     improvement_stayed_the_same = 0
 
-                if improvement_stayed_the_same >= 5:
+                if improvement_stayed_the_same >= 25:
                     print("Model has not improved in 5 episodes, ending training early.")
                     done_training = True
             if self.save_model:
@@ -503,13 +503,13 @@ class DQNLearning:
             self.env.reset()
             state = self.env.current_state
             step_count = 0
-            while state != self.env.get_terminal_state():
+            while not self.env.get_terminal_state():
                 self.env.render()
                 if self.space_was_pressed():
                     if self.x_was_pressed:
                         break
                     state = self.env.current_state
-                    state_list = [[state[0], state[1]]]
+                    state_list = [state]
                     prob = (1 - epsilon + (epsilon / self.env.action_space_size)) * 100
                     rand = random.randint(0, 100)
                     if rand < prob:

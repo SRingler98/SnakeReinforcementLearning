@@ -7,14 +7,14 @@ env = SnakeEnv(grid_size=10)
 
 temp_learn = DQNLearning(env=env,
                          target_name=str(str("Snake")),
-                         episode_count=10,
-                         min_batch_size=50,
+                         episode_count=500,
+                         min_batch_size=1000,
                          max_batch_size=-1,
                          load_model=False,
-                         fit_on_step=10,
+                         fit_on_step=2,
                          train=True,
-                         save_model=False,
-                         show_graphs=False)
+                         save_model=True,
+                         show_graphs=True)
 
 print("Training model")
 temp_agent = temp_learn.train(debug=False,
