@@ -329,7 +329,7 @@ class DQNLearning:
             max_next_q = get_max_value_from_tf_sensor(next_q)
 
             for i in range(len(target_q)):
-                if state == env.get_terminal_state():
+                if state == self.env.get_terminal_state():
                     target_q[i][action_batch[i]] = reward_batch[i]
                 else:
                     target_q[i][action_batch[i]] = reward_batch[i] + self.discount_factor * max_next_q[i]
@@ -380,7 +380,7 @@ class DQNLearning:
             policy_used = 0
             # self.epsilon = 1 - (current_episode_count / self.episode_count)
             total_reward = 0
-            while state != env.get_terminal_state():
+            while state != self.env.get_terminal_state():
                 state = self.env.current_state
                 prob = (1 - self.epsilon + (self.epsilon / self.env.action_space_size)) * 100
                 # prob = self.epsilon * 100
@@ -438,7 +438,7 @@ class DQNLearning:
                         max_next_q = get_max_value_from_tf_sensor(next_q)
 
                         for i in range(len(target_q)):
-                            if state == env.get_terminal_state():
+                            if state == self.env.get_terminal_state():
                                 target_q[i][action_batch[i]] = reward_batch[i]
                             else:
                                 target_q[i][action_batch[i]] = reward_batch[i] + self.discount_factor * max_next_q[i]
@@ -511,9 +511,9 @@ class DQNLearning:
     def sample_random_data(self, agent, replay, until, debug=False):
         state = self.env.current_state
         temp_count = 0
-        while state != env.get_terminal_state() and temp_count < until:
+        while state != self.env.get_terminal_state() and temp_count < until:
             state = self.env.current_state
-            if state == env.get_terminal_state():
+            if state == self.env.get_terminal_state():
                 self.env.reset()
                 state = self.env.current_state
             prob = (1 - self.epsilon + (self.epsilon / self.env.action_space_size)) * 100
