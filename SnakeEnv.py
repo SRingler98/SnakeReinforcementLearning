@@ -53,11 +53,10 @@ class SnakeEnv:
         self.score = 0
 
 
-    def refresh_after_step(self, display_on):
+    def refresh_after_step(self):
         if not self.apple_spawned:
             self.spawn_apple_randomly()
-        if display_on:
-            self.display.draw_grid(self.grid_array, self.current_state)
+
 
     def get_current_twelve_boolean_state(self):
         temp_string = ""
