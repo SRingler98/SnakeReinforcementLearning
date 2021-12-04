@@ -15,7 +15,7 @@ from DisplayGrid import DisplayGrid
 
 def build_model(model_name):
     model = Sequential(name="model_name")
-    model.add(layers.InputLayer(input_shape=(2,)))
+    model.add(layers.InputLayer(input_shape=(12,)))
     model.add(layers.Dense(64, activation='relu'))
     model.add(layers.Dense(32, activation='relu'))
     model.add(layers.Dense(16, activation='relu'))
