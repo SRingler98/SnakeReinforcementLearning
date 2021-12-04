@@ -6,7 +6,7 @@ from DisplayGrid import DisplayGrid as DG
 
 
 # class to run and handle snake game
-class SnakeEngine:
+class SnakeEnv:
     # initializes snake game
     def __init__(self, grid_size):
         self.grid_size = grid_size  # sets grid size to input variable
@@ -32,127 +32,9 @@ class SnakeEngine:
             self.grid_array[snake_part[0]][snake_part[1]] = 1
 
         self.grid_array[self.player_pos_list[0][0]][self.player_pos_list[0][1]] = 4
+        
 
-    def run_game_in_real_time(self):
-        while self.snake_alive:
-            if not self.apple_spawned:
-                self.spawn_apple_randomly()
-            self.display.draw_grid(self.grid_array, self.current_state)
-            self.event_handler()
-        print("Game Over!\nFinal Score was: " + str(self.score))
-
-    def run_game_using_policy(self, q_table, n_times):
-        print("Optimal demo is ready to run. Press Space to step through an episode.")
-
-        optimal_runs = 0
-
-        while optimal_runs < n_times:
-            self.start_game_for_steps(True)
-            while self.snake_alive:
-                if not self.apple_spawned:
-                    self.spawn_apple_randomly()
-                self.display.draw_grid(self.grid_array, self.current_state)
-
-                if self.space_was_pressed():
-                    self.current_state = self.get_current_twelve_boolean_state()
-                    print("Current State: " + str(self.current_state))
-                    chosen_action = q_table.choose_action_optimally(self.current_state)
-                    print("\tChosen action: " + str(chosen_action))
-                    print("\tQTable Values: " + str(q_table.q_table[self.current_state]))
-                    self.move_player_step(chosen_action)
-                    self.current_state = self.get_current_twelve_boolean_state()
-
-            print("Game Over!\nFinal Score was: " + str(self.score))
-
-            self.grid_array[self.player_pos_list[0][0]][self.player_pos_list[0][1]] = 3
-            self.current_state = self.get_current_twelve_boolean_state()
-
-            self.space_was_pressed()
-
-            optimal_runs += 1
-
-    def run_game_using_policy_and_generate_graph_then_demo(self, q_table, n_times):
-        print("Generating Optimal Data")
-
-        optimal_runs = 0
-        score_list = []
-
-        while optimal_runs < n_times:
-            self.start_game_for_steps(False)
-            step_count = 0
-            while self.snake_alive:
-                if not self.apple_spawned:
-                    self.spawn_apple_randomly()
-                # self.display.draw_grid(self.grid_array, self.current_state)
-
-                self.current_state = self.get_current_twelve_boolean_state()
-
-                chosen_action = q_table.choose_action_optimally(self.current_state)
-                self.move_player_step(chosen_action)
-                self.current_state = self.get_current_twelve_boolean_state()
-
-                step_count += 1
-
-                if step_count > 200:
-                    self.snake_alive = False
-
-            self.grid_array[self.player_pos_list[0][0]][self.player_pos_list[0][1]] = 3
-            self.current_state = self.get_current_twelve_boolean_state()
-
-            score_list.append(self.score)
-
-            optimal_runs += 1
-
-        x_values = []
-        for x in range(n_times):
-            x_values.append(x)
-
-        plt.scatter(x_values, score_list)
-        plt.show()
-
-        self.run_game_using_policy(q_table, 10)
-
-    def run_game_using_policy_and_return_scores(self, q_table, n_times):
-        """
-        Runs the Snake game using the policy supplied.
-        No exploration. Only optimal choices.
-        Dies if caught in a loop.
-        Returns a list of scores for all of the games.
-        """
-
-        optimal_runs = 0
-        score_list = []
-
-        while optimal_runs < n_times:
-            self.start_game_for_steps(False)
-            step_count = 0
-            while self.snake_alive:
-                if not self.apple_spawned:
-                    self.spawn_apple_randomly()
-                # self.display.draw_grid(self.grid_array, self.current_state)
-
-                self.current_state = self.get_current_twelve_boolean_state()
-
-                chosen_action = q_table.choose_action_optimally(self.current_state)
-                self.move_player_step(chosen_action)
-                self.current_state = self.get_current_twelve_boolean_state()
-
-                step_count += 1
-
-                if step_count > 200:    #snake caught in loop
-                    self.snake_alive = False
-
-            self.grid_array[self.player_pos_list[0][0]][self.player_pos_list[0][1]] = 3
-            self.current_state = self.get_current_twelve_boolean_state()
-
-            score_list.append(self.score)
-
-            optimal_runs += 1
-
-        return score_list
-
-
-    def start_game_for_steps(self, display_on):
+    def reset(self):
         self.snake_alive = True
         # creates a int array of zeroes based on the grid size
         self.grid_array = np.zeros((self.grid_size, self.grid_size))
@@ -169,8 +51,7 @@ class SnakeEngine:
         self.current_reward = 0
         self.current_state = self.get_current_twelve_boolean_state()
         self.score = 0
-        if display_on:
-            self.display.draw_grid(self.grid_array, self.current_state)
+
 
     def refresh_after_step(self, display_on):
         if not self.apple_spawned:
@@ -271,20 +152,6 @@ class SnakeEngine:
 
         return temp_string
 
-    def event_handler(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RIGHT:
-                    self.move_player_step('right')
-                elif event.key == pygame.K_LEFT:
-                    self.move_player_step('left')
-                elif event.key == pygame.K_UP:
-                    self.move_player_step('up')
-                elif event.key == pygame.K_DOWN:
-                    self.move_player_step('down')
 
     def space_was_pressed(self):
         self.display.draw_grid(self.grid_array, self.current_state)
