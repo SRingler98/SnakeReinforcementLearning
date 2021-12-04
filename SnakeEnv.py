@@ -27,6 +27,7 @@ class SnakeEnv:
         self.current_reward = 0
         self.current_state = self.get_current_twelve_boolean_state()
 
+
     def add_snake_body_to_grid(self):
         for snake_part in self.player_pos_list:
             self.grid_array[snake_part[0]][snake_part[1]] = 1
@@ -155,8 +156,10 @@ class SnakeEnv:
     def remove_tail_from_grid(self, state_tuple):
         self.grid_array[state_tuple[0]][state_tuple[1]] = 0
 
+
     def add_tail_onto_grid(self, state_tuple):
         self.grid_array[state_tuple[0]][state_tuple[1]] = 1
+
 
     def spawn_apple_randomly(self):
         spawned_incorrectly = True
@@ -196,20 +199,24 @@ class SnakeEnv:
         y = 0
         self.move_tail(x, y)
 
+
     def move_player_left(self):
         x = -1
         y = 0
         self.move_tail(x, y)
+
 
     def move_player_up(self):
         x = 0
         y = -1
         self.move_tail(x, y)
 
+
     def move_player_down(self):
         x = 0
         y = 1
         self.move_tail(x, y)
+
 
     def move_tail(self, x, y):
         if self.check_if_on_body_or_wall(x, y):
@@ -242,11 +249,13 @@ class SnakeEnv:
                 self.add_snake_body_to_grid()
                 self.current_reward = 0
 
+
     def check_if_on_apple(self):
         if self.player_pos_list[0] == self.apple_pos:
             return True
         else:
             return False
+
 
     def check_if_on_body_or_wall(self, x, y):
         temp_player_pos_x = self.player_pos_list[0][0] + x
@@ -257,3 +266,4 @@ class SnakeEnv:
             return True
         else:
             return False
+
