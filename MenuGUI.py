@@ -4,7 +4,7 @@ from tkinter.constants import N
 import PySimpleGUI as sg
 from SnakeEngine import *
 from QLearning import *
-from Graphing import *
+from graphing import *
 import time
 import os
 import webbrowser

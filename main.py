@@ -10,7 +10,7 @@ import numpy as np
 import statistics as stat
 import pandas as pd
 from QLearning import QLearning
-from Graphing import learning_loop_multiple_agents_create_graph
+from graphing import learning_loop_multiple_agents_create_graph
 #from Menu import *
 
 #menu()
