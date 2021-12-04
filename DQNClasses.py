@@ -10,7 +10,7 @@ from tensorflow.keras import layers
 from tensorflow.keras import Input
 from tensorflow.keras.models import clone_model
 from DisplayGrid import DisplayGrid
-from CreateReplayBufferData import CreateReplayBufferData as CRBD
+# from CreateReplayBufferData import CreateReplayBufferData as CRBD
 
 
 def build_model(model_name):
@@ -32,6 +32,32 @@ def build_model2(model_name):
     model.add(layers.Dense(4, activation='linear'))
     model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001), loss='mse')
     return model
+
+
+class ActionSpace:
+    def __init__(self):
+        self.action_space_list = ['up', 'down', 'left', 'right']
+
+    def get_action_space(self):
+        return self.action_space_list
+
+    def get_size_of_action_space(self):
+        return len(self.action_space_list)
+
+
+class Reward:
+    def __init__(self, x, y):
+        self.reward_grid = np.zeros((x, y))
+        for coords in targets:
+            self.reward_grid[coords[0]][coords[1]] = -100
+        for wall in walls:
+            self.reward_grid[wall[0]][wall[1]] = -100
+
+    def get_reward(self, x, y):
+        return self.reward_grid[x][y]
+
+    def set_target_reward(self, x, y, reward_value):
+        self.reward_grid[x][y] = reward_value
 
 
 def pure_random_action():
