@@ -47,21 +47,6 @@ class ActionSpace:
         return len(self.action_space_list)
 
 
-class Reward:
-    def __init__(self, x, y):
-        self.reward_grid = np.zeros((x, y))
-        for coords in targets:
-            self.reward_grid[coords[0]][coords[1]] = -100
-        for wall in walls:
-            self.reward_grid[wall[0]][wall[1]] = -100
-
-    def get_reward(self, x, y):
-        return self.reward_grid[x][y]
-
-    def set_target_reward(self, x, y, reward_value):
-        self.reward_grid[x][y] = reward_value
-
-
 def pure_random_action():
     temp_action_space = ActionSpace()
     temp_action_list = temp_action_space.get_action_space()
