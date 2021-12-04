@@ -32,7 +32,7 @@ class SnakeEnv:
             self.grid_array[snake_part[0]][snake_part[1]] = 1
 
         self.grid_array[self.player_pos_list[0][0]][self.player_pos_list[0][1]] = 4
-        
+
 
     def reset(self):
         self.snake_alive = True
@@ -153,21 +153,6 @@ class SnakeEnv:
         return temp_string
 
 
-    def space_was_pressed(self):
-        self.display.draw_grid(self.grid_array, self.current_state)
-        button_pressed = False
-        while not button_pressed:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit()
-
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
-                        print("Space was pressed")
-                        button_pressed = True
-                        return True
-        return False
-
     def remove_tail_from_grid(self, state_tuple):
         self.grid_array[state_tuple[0]][state_tuple[1]] = 0
 
@@ -187,7 +172,8 @@ class SnakeEnv:
         self.grid_array[random_int_x][random_int_y] = 2
         self.apple_spawned = True
 
-    def move_player_step(self, action):
+
+    def step(self, action):
         if action == 'right':
             self.move_player_right()
         elif action == 'left':
@@ -196,6 +182,13 @@ class SnakeEnv:
             self.move_player_up()
         elif action == 'down':
             self.move_player_down()
+
+        next_state = self.get_current_twelve_boolean_state()
+        reward = self.current_reward
+        done = not(self.snake_alive)
+
+        return next_state, reward, done
+
 
     # the move player functions work by changing the delta for x or y
 
