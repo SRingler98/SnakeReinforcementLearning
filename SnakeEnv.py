@@ -26,6 +26,7 @@ class SnakeEnv:
         self.snake_alive = True
         self.current_reward = 0
         self.current_state = self.get_current_twelve_boolean_state()
+        self.action_space_size = 4
 
 
     def add_snake_body_to_grid(self):
@@ -267,4 +268,7 @@ class SnakeEnv:
             return True
         else:
             return False
+
+    def get_terminal_state(self):
+        return not self.snake_alive
 
