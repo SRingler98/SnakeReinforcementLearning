@@ -15,7 +15,7 @@ from DisplayGrid import DisplayGrid
 
 def build_model(model_name):
     model = Sequential(name="model_name")
-    model.add(layers.InputLayer(input_shape=(2,)))
+    model.add(layers.InputLayer(input_shape=(12,)))
     model.add(layers.Dense(64, activation='relu'))
     model.add(layers.Dense(32, activation='relu'))
     model.add(layers.Dense(16, activation='relu'))
@@ -45,21 +45,6 @@ class ActionSpace:
 
     def get_size_of_action_space(self):
         return len(self.action_space_list)
-
-
-class Reward:
-    def __init__(self, x, y):
-        self.reward_grid = np.zeros((x, y))
-        for coords in targets:
-            self.reward_grid[coords[0]][coords[1]] = -100
-        for wall in walls:
-            self.reward_grid[wall[0]][wall[1]] = -100
-
-    def get_reward(self, x, y):
-        return self.reward_grid[x][y]
-
-    def set_target_reward(self, x, y, reward_value):
-        self.reward_grid[x][y] = reward_value
 
 
 def pure_random_action():
@@ -329,7 +314,7 @@ class DQNLearning:
             max_next_q = get_max_value_from_tf_sensor(next_q)
 
             for i in range(len(target_q)):
-                if state == env.get_terminal_state():
+                if state == self.env.get_terminal_state():
                     target_q[i][action_batch[i]] = reward_batch[i]
                 else:
                     target_q[i][action_batch[i]] = reward_batch[i] + self.discount_factor * max_next_q[i]
@@ -380,7 +365,7 @@ class DQNLearning:
             policy_used = 0
             # self.epsilon = 1 - (current_episode_count / self.episode_count)
             total_reward = 0
-            while state != env.get_terminal_state():
+            while state != self.env.get_terminal_state():
                 state = self.env.current_state
                 prob = (1 - self.epsilon + (self.epsilon / self.env.action_space_size)) * 100
                 # prob = self.epsilon * 100
@@ -438,7 +423,7 @@ class DQNLearning:
                         max_next_q = get_max_value_from_tf_sensor(next_q)
 
                         for i in range(len(target_q)):
-                            if state == env.get_terminal_state():
+                            if state == self.env.get_terminal_state():
                                 target_q[i][action_batch[i]] = reward_batch[i]
                             else:
                                 target_q[i][action_batch[i]] = reward_batch[i] + self.discount_factor * max_next_q[i]
@@ -511,9 +496,9 @@ class DQNLearning:
     def sample_random_data(self, agent, replay, until, debug=False):
         state = self.env.current_state
         temp_count = 0
-        while state != env.get_terminal_state() and temp_count < until:
+        while state != self.env.get_terminal_state() and temp_count < until:
             state = self.env.current_state
-            if state == env.get_terminal_state():
+            if state == self.env.get_terminal_state():
                 self.env.reset()
                 state = self.env.current_state
             prob = (1 - self.epsilon + (self.epsilon / self.env.action_space_size)) * 100
