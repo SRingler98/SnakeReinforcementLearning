@@ -292,44 +292,7 @@ class DQNLearning:
         done_training = False
         self.env.reset()
         state = self.env.current_state
-        if type(replay_buffer_data) is not None:
-            replay.load_data_into_buffer(replay_buffer_data=replay_buffer_data, batch_size=self.min_batch_size)
-
-            state_batch, action_batch, reward_batch, next_state_batch = replay.get_entire_buffer_reversed()
-
-            size_of_mini_batch = len(state_batch)
-
-            next_state_batch_list = []
-
-            for item in next_state_batch:
-                next_state_batch_list.append([[item[0], item[1]]])
-
-            next_state_batch_tf_tensor = tf.convert_to_tensor(next_state_batch_list, dtype=tf.float32)
-
-            different_state_list = tf.convert_to_tensor(state_batch, dtype=tf.float32)
-            # current_q = agent.model(different_state_list)
-            target_q = np.array(target.model(different_state_list))
-
-            next_q = target.model(next_state_batch_tf_tensor)
-            max_next_q = get_max_value_from_tf_sensor(next_q)
-
-            for i in range(len(target_q)):
-                if state == self.env.get_terminal_state():
-                    target_q[i][action_batch[i]] = reward_batch[i]
-                else:
-                    target_q[i][action_batch[i]] = reward_batch[i] + self.discount_factor * max_next_q[i]
-
-            verbose_number = 0
-            if debug:
-                verbose_number = 1
-
-            x = np.array(different_state_list)
-            y = np.array(target_q)
-
-            # gradient decent on model
-            result = agent.model.fit(x=x, y=y, verbose=verbose_number, batch_size=1)
-        else:
-            self.sample_random_data(agent, replay, until=self.min_batch_size, debug=debug)
+        self.sample_random_data(agent, replay, until=self.min_batch_size, debug=debug)
 
         done_training = False
         if not self.is_train:
