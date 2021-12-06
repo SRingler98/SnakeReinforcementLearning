@@ -15,11 +15,9 @@ from DisplayGrid import DisplayGrid
 
 def build_model(model_name):
     model = Sequential(name="model_name")
-    model.add(layers.InputLayer(input_shape=(12,)))
-    model.add(layers.Dense(64, activation='relu'))
-    model.add(layers.Dense(32, activation='relu'))
-    model.add(layers.Dense(16, activation='relu'))
-    model.add(layers.Dense(8, activation='relu'))
+    model.add(layers.InputLayer(input_shape=(100,)))
+    model.add(layers.Dense(1024, activation='sigmoid'))
+    model.add(layers.Dense(1024, activation='sigmoid'))
     model.add(layers.Dense(4, activation='linear'))
     model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001), loss='mse')
     return model
@@ -99,6 +97,23 @@ def get_max_value_from_tf_sensor(tf_array):
                     max_index = temp_index
                 temp_index += 1
             max_list.append(max_value)
+
+    return max_list
+
+
+def get_max_value_from_np_array(np_array):
+    max_list = []
+
+    for row in np_array:
+        max_value = 0
+        max_index = 0
+        temp_index = 0
+        for item in row:
+            if item > max_value:
+                max_value = item
+                max_index = temp_index
+            temp_index += 1
+        max_list.append(max_value)
 
     return max_list
 
@@ -361,50 +376,73 @@ class DQNLearning:
 
                 replay.store(state, max_action_number, reward, next_state)
 
+                different_state_list = tf.convert_to_tensor(state_list, dtype=tf.float32)
+
+                target_q = np.array(target.model(different_state_list))
+
+                next_state_batch_tf_tensor = tf.convert_to_tensor([next_state], dtype=tf.float32)
+
+                next_q = np.array(target.model(next_state_batch_tf_tensor))
+                max_next_q = get_max_value_from_np_array(next_q)
+
+                if state == self.env.get_terminal_state():
+                    target_q[0][max_action_number] += reward
+                else:
+                    target_q[0][max_action_number] += reward + self.discount_factor * max_next_q[0]
+
+                x = np.array(different_state_list)
+                y = np.array(target_q)
+
+                verbose_number = 0
+
+                # gradient decent on model
+                result = agent.model.fit(x=x, y=y, verbose=verbose_number, batch_size=1)
+
                 # mini_batch = replay.get_mini_batch()
 
                 # if there are more then 50 actions stored in the replay buffer
-                if step_count % self.fit_on_step == 0 and step_count != 0:
-                    if replay.get_size_of_replay_buffer() > self.min_batch_size:
-                        # state_batch, action_batch, reward_batch, next_state_batch = replay.get_entire_buffer()
-                        state_batch, action_batch, reward_batch, next_state_batch = replay.get_mini_batch()
+                # if step_count % self.fit_on_step == 0 and step_count != 0:
+                #     if replay.get_size_of_replay_buffer() > self.min_batch_size:
+                #         # state_batch, action_batch, reward_batch, next_state_batch = replay.get_entire_buffer()
+                #         state_batch, action_batch, reward_batch, next_state_batch = replay.get_mini_batch()
+                #
+                #         size_of_mini_batch = len(state_batch)
+                #
+                #         next_state_batch_list = []
+                #
+                #         for item in next_state_batch:
+                #             next_state_batch_list.append([item])
+                #
+                #         next_state_batch_tf_tensor = tf.convert_to_tensor(next_state_batch_list, dtype=tf.float32)
+                #
+                #         different_state_list = tf.convert_to_tensor(state_batch, dtype=tf.float32)
+                #         # current_q = agent.model(different_state_list)
+                #         target_q = np.array(target.model(different_state_list))
+                #
+                #         next_q = target.model(next_state_batch_tf_tensor)
+                #         max_next_q = get_max_value_from_tf_sensor(next_q)
+                #
+                #         for i in range(len(target_q)):
+                #             if state == self.env.get_terminal_state():
+                #                 target_q[i][action_batch[i]] = reward_batch[i]
+                #             else:
+                #                 target_q[i][action_batch[i]] = reward_batch[i] + self.discount_factor * max_next_q[i]
+                #
+                #         verbose_number = 0
+                #         if debug:
+                #             verbose_number = 1
+                #
+                #         x = np.array(different_state_list)
+                #         y = np.array(target_q)
+                #
+                #         # gradient decent on model
+                #         result = agent.model.fit(x=x, y=y, verbose=verbose_number, batch_size=1)
+                #
+                #         if debug:
+                #             print(result)
 
-                        size_of_mini_batch = len(state_batch)
-
-                        next_state_batch_list = []
-
-                        for item in next_state_batch:
-                            next_state_batch_list.append([item])
-
-                        next_state_batch_tf_tensor = tf.convert_to_tensor(next_state_batch_list, dtype=tf.float32)
-
-                        different_state_list = tf.convert_to_tensor(state_batch, dtype=tf.float32)
-                        # current_q = agent.model(different_state_list)
-                        target_q = np.array(target.model(different_state_list))
-
-                        next_q = target.model(next_state_batch_tf_tensor)
-                        max_next_q = get_max_value_from_tf_sensor(next_q)
-
-                        for i in range(len(target_q)):
-                            if state == self.env.get_terminal_state():
-                                target_q[i][action_batch[i]] = reward_batch[i]
-                            else:
-                                target_q[i][action_batch[i]] = reward_batch[i] + self.discount_factor * max_next_q[i]
-
-                        verbose_number = 0
-                        if debug:
-                            verbose_number = 1
-
-                        x = np.array(different_state_list)
-                        y = np.array(target_q)
-
-                        # gradient decent on model
-                        result = agent.model.fit(x=x, y=y, verbose=verbose_number, batch_size=1)
-
-                        if debug:
-                            print(result)
-
-                target.model = clone_model(agent.model)
+                if step_count % 5 == 0:
+                    target.model = clone_model(agent.model)
                 step_count += 1
 
                 if step_count % 100 == 0:
@@ -418,7 +456,7 @@ class DQNLearning:
                     break
             # end episode loop
 
-            if current_episode_count > self.episode_count:
+            if current_episode_count >= self.episode_count:
                 done_training = True
             else:
                 current_episode_count += 1
@@ -439,9 +477,10 @@ class DQNLearning:
                 if improvement_stayed_the_same >= 25:
                     print("Model has not improved in 5 episodes, ending training early.")
                     done_training = True
-            if self.save_model:
-                agent.save_model()
+
         # end training loop
+        if self.save_model:
+            agent.save_model()
 
         print("\tReplay Buffer Size: " + str(replay.get_size_of_replay_buffer()))
 
@@ -457,35 +496,12 @@ class DQNLearning:
         return agent
 
     def sample_random_data(self, agent, replay, until, debug=False):
-        state = self.env.current_state
         temp_count = 0
-        while state != self.env.get_terminal_state() and temp_count < until:
+        while temp_count < until:
             state = self.env.current_state
-            if state == self.env.get_terminal_state():
+            if self.env.get_terminal_state():
                 self.env.reset()
                 state = self.env.current_state
-            prob = (1 - self.epsilon + (self.epsilon / self.env.action_space_size)) * 100
-            rand = random.randint(0, 100)
-
-            # action = "null"
-            # max_action_number = -1
-            #
-            # state_list = [[state[0], state[1]]]
-            #
-            # different_state_list = tf.convert_to_tensor(state_list, dtype=tf.float32)
-            # current_q = agent.model(different_state_list)
-            # target_q = np.copy(current_q)
-            #
-            # if rand < prob:
-            #     if debug:
-            #         print("Choosing max")
-            #     max_action_number = agent.policy(state_list)
-            #     action = convert_number_into_action(max_action_number)
-            # else:
-            #     if debug:
-            #         print("choosing random")
-            #     action = agent.random_action_minus_max(state_list)
-            #     max_action_number = convert_action_into_number(action)
 
             action = pure_random_action()
             max_action_number = convert_action_into_number(action)

@@ -6,10 +6,10 @@ print("Creating model")
 env = SnakeEnv(grid_size=10)
 
 temp_learn = DQNLearning(env=env,
-                         target_name=str(str("Snake")),
-                         episode_count=500,
+                         target_name=str(str("SnakeLong")),
+                         episode_count=25000,
                          min_batch_size=1000,
-                         max_batch_size=-1,
+                         max_batch_size=25000,
                          load_model=False,
                          fit_on_step=2,
                          train=True,
