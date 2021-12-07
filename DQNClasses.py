@@ -206,6 +206,76 @@ class ReplayBuffer:
                 self.max_index += 1
 
 
+class ReplayBuffer2:
+    def __init__(self, max_size):
+        self.storage = []
+        self.max_index = 0
+        self.max_size = max_size
+
+    def store(self, state_list, action_list, reward_list, next_state_list):
+
+        length = len(state_list)
+
+        temp_episode = []
+
+        temp_index = 0
+
+        while temp_index < length:
+            temp_step = []
+            temp_step.append(state_list[temp_index])
+            temp_step.append(action_list[temp_index])
+            temp_step.append(reward_list[temp_index])
+            temp_step.append(next_state_list[temp_index])
+            temp_index += 1
+            temp_episode.append(temp_step)
+
+        self.storage.append(temp_episode)
+
+        self.max_index += 1
+
+    def get_mini_batch(self, batch_size=50):
+        random_index_list = []
+
+        for i in range(batch_size):
+            random_index = random.randint(0, self.max_index - 1)
+            random_index_list.append(random_index)
+
+        temp_states = []
+        temp_actions = []
+        temp_rewards = []
+        temp_next_states = []
+
+        for index in random_index_list:
+            temp_states.append(self.states[index])
+            temp_actions.append(self.actions[index])
+            temp_rewards.append(self.rewards[index])
+            temp_next_states.append(self.next_states[index])
+
+        return temp_states, temp_actions, temp_rewards, temp_next_states
+
+    def get_entire_buffer(self):
+        return self.states, self.actions, self.rewards, self.next_states
+
+    def get_entire_buffer_reversed(self):
+        temp_states = reverse_items_in_list(self.states)
+        temp_actions = reverse_items_in_list(self.actions)
+        temp_rewards = reverse_items_in_list(self.rewards)
+        temp_next_states = reverse_items_in_list(self.next_states)
+        return temp_states, temp_actions, temp_rewards, temp_next_states
+
+    def get_size_of_replay_buffer(self):
+        return self.max_index
+
+    def load_data_into_buffer(self, replay_buffer_data, batch_size):
+        while self.max_index < batch_size:
+            for item in replay_buffer_data:
+                self.states.append(item[0])
+                self.actions.append(convert_action_into_number(item[1]))
+                self.rewards.append(item[2])
+                self.next_states.append(item[3])
+                self.max_index += 1
+
+
 class DQNModel:
     def __init__(self, model_location='models/'):
         self.model = build_model(model_location)
