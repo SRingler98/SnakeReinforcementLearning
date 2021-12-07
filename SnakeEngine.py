@@ -50,6 +50,100 @@ class SnakeEngine:
 
         return temp_states, temp_actions, temp_rewards, temp_next_states
 
+    def get_current_twelve_int_boolean_state(self):
+        temp_list = []
+
+        player_pos_x = self.player_pos_list[0][0]
+        player_pos_y = self.player_pos_list[0][1]
+        apple_pos_x = self.apple_pos[0]
+        apple_pos_y = self.apple_pos[1]
+
+        # apple above
+        if apple_pos_y > player_pos_y:
+            temp_list.append(1)
+        elif apple_pos_y <= player_pos_y:
+            temp_list.append(0)
+
+        # apple below
+        if apple_pos_y < player_pos_y:
+            temp_list.append(1)
+        elif apple_pos_y >= player_pos_y:
+            temp_list.append(0)
+
+        # apple left
+        if apple_pos_x < player_pos_x:
+            temp_list.append(1)
+        elif apple_pos_x >= player_pos_x:
+            temp_list.append(0)
+
+        # apple left
+        if apple_pos_x > player_pos_x:
+            temp_list.append(1)
+        elif apple_pos_x <= player_pos_x:
+            temp_list.append(0)
+
+        # wall up
+        if player_pos_y - 1 <= 0:
+            temp_list.append(1)
+        elif self.grid_array[player_pos_x][player_pos_y - 1] == 1:
+            temp_list.append(1)
+        else:
+            temp_list.append(0)
+
+        # wall down
+        if player_pos_y + 1 >= 10:
+            temp_list.append(1)
+        elif self.grid_array[player_pos_x][player_pos_y + 1] == 1:
+            temp_list.append(1)
+        else:
+            temp_list.append(0)
+
+        # wall left
+        if player_pos_x - 1 <= 0:
+            temp_list.append(1)
+        elif self.grid_array[player_pos_x - 1][player_pos_y] == 1:
+            temp_list.append(1)
+        else:
+            temp_list.append(0)
+
+        # wall right
+        if player_pos_x + 1 >= 10:
+            temp_list.append(1)
+        elif self.grid_array[player_pos_x + 1][player_pos_y] == 1:
+            temp_list.append(1)
+        else:
+            temp_list.append(0)
+
+        # get position difference to see how snake is facing
+        position_difference = (self.player_pos_list[0][0] - self.player_pos_list[1][0],
+                               self.player_pos_list[0][1] - self.player_pos_list[1][1])
+
+        # snake facing up
+        if position_difference == (0, -1):
+            temp_list.append(1)
+        else:
+            temp_list.append(0)
+
+        # snake facing down
+        if position_difference == (0, 1):
+            temp_list.append(1)
+        else:
+            temp_list.append(0)
+
+        # snake facing left
+        if position_difference == (-1, 0):
+            temp_list.append(1)
+        else:
+            temp_list.append(0)
+
+        # snake facing right
+        if position_difference == (1, 0):
+            temp_list.append(1)
+        else:
+            temp_list.append(0)
+
+        return temp_list
+
     def run_game_using_policy(self, q_table, n_times):
         print("Optimal demo is ready to run. Press Space to step through an episode.")
 

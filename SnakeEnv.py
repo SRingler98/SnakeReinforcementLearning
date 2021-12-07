@@ -193,6 +193,7 @@ class SnakeEnv:
             self.move_player_down()
 
         next_state = self.get_current_state()
+        # next_state = self.get_current_twelve_boolean_state()
         reward = self.current_reward
         done = not self.snake_alive
 

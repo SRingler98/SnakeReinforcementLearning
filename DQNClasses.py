@@ -11,16 +11,16 @@ from tensorflow.keras import layers
 from tensorflow.keras import Input
 from tensorflow.keras.models import clone_model
 from DisplayGrid import DisplayGrid
-# from CreateReplayBufferData import CreateReplayBufferData as CRBD
+from SnakeEngine import SnakeEngine
 
 
 def build_model(model_name):
     model = Sequential(name="model_name")
     model.add(layers.InputLayer(input_shape=(100,)))
-    model.add(layers.Dense(1024, activation='sigmoid'))
-    model.add(layers.Dense(1024, activation='sigmoid'))
+    model.add(layers.Dense(200, activation='relu'))
+    model.add(layers.Dense(100, activation='relu'))
     model.add(layers.Dense(4, activation='linear'))
-    model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001), loss='mse')
+    model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.1), loss='mse')
     return model
 
 
@@ -33,6 +33,57 @@ def build_model2(model_name):
     model.add(layers.Dense(4, activation='linear'))
     model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001), loss='mse')
     return model
+
+
+def convert_from_grid_to_list(grid):
+    temp_list = []
+
+    for row in grid:
+        for item in row:
+            temp_list.append(item)
+
+    return temp_list
+
+
+def create_good_data():
+    se = SnakeEngine(10)
+    states, actions, rewards, next_states = se.run_game_in_real_time()
+
+    temp_states = []
+
+    for grid in states:
+        temp_states.append(convert_from_grid_to_list(grid))
+
+    states = temp_states
+
+    temp_actions = []
+    for item in actions:
+        temp_action = convert_action_into_number(item)
+        temp_actions.append(temp_action)
+
+    actions = temp_actions
+
+    temp_next_states = []
+
+    for grid in next_states:
+        temp_next_states.append(convert_from_grid_to_list(grid))
+
+    next_states = temp_next_states
+
+    max_count = len(states)
+
+    index = 0
+
+    episode_list = []
+
+    while index < max_count:
+        episode_list.append([states[index],
+                             actions[index],
+                             rewards[index],
+                             next_states[index]])
+        index += 1
+
+    return episode_list
 
 
 def load_replay_data_from_csv(filename):
@@ -359,6 +410,8 @@ class DQNLearning:
 
         self.env.reset()
         self.sample_random_data(agent, replay, until=self.min_batch_size, debug=debug)
+
+        # replay.storage.append(create_good_data())
 
         done_training = False
         if not self.is_train:

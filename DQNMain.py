@@ -9,8 +9,8 @@ env = SnakeEnv(grid_size=10)
 
 temp_learn = DQNLearning(env=env,
                          target_name=str(str("SnakeEpisodic2")),
-                         episode_count=10000,
-                         min_batch_size=2500,
+                         episode_count=1000,
+                         min_batch_size=250,
                          max_batch_size=-1,
                          load_model=False,
                          fit_on_step=2,
