@@ -2,6 +2,7 @@ import random
 import pygame
 import sys
 import time
+import csv
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -32,6 +33,18 @@ def build_model2(model_name):
     model.add(layers.Dense(4, activation='linear'))
     model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001), loss='mse')
     return model
+
+
+def load_replay_data_from_csv(filename):
+    file = open(filename, 'r')
+    reader = csv.reader(file)
+
+    data = list(reader)
+
+    print(data[0])
+    print(type(data[0][0]))
+
+    file.close()
 
 
 class ActionSpace:
@@ -215,7 +228,7 @@ class ReplayBuffer2:
 
     def store(self, state_list, action_list, reward_list, next_state_list):
 
-        length = len(state_list) - 1
+        length = len(action_list)
 
         temp_episode = []
 
@@ -241,7 +254,7 @@ class ReplayBuffer2:
             random_index = random.randint(0, self.max_index - 1)
             random_index_list.append(random_index)
 
-        temp_episodes_list = []
+        temp_episodes_list = [self.storage[len(self.storage) - 1]]
 
         for index in random_index_list:
             temp_episodes_list.append(self.storage[index])
@@ -333,6 +346,7 @@ class DQNLearning:
         self.show_graphs = show_graphs
 
     def train(self, debug=False, replay_buffer_data=None):
+        start_time = time.time()
         replay = ReplayBuffer2(self.max_batch_size)
 
         agent = DQNModel(model_location=str('models/' + str(self.target_name)))
@@ -373,11 +387,10 @@ class DQNLearning:
             actions = []
             rewards = []
             next_states = []
+            prob = (1 - self.epsilon + (self.epsilon / self.env.action_space_size)) * 100
             while not self.env.get_terminal_state():
                 state = self.env.current_state
                 states.append(state)
-                prob = (1 - self.epsilon + (self.epsilon / self.env.action_space_size)) * 100
-                # prob = self.epsilon * 100
                 rand = random.randint(0, 100)
 
                 action = "null"
@@ -423,7 +436,7 @@ class DQNLearning:
 
             replay.store(states, actions, rewards, next_states)
 
-            buffer_data = replay.get_mini_batch(batch_size=5)
+            buffer_data = replay.get_mini_batch(batch_size=10)
 
             for episode in buffer_data:
                 length_of_episode = len(episode) - 1
@@ -434,10 +447,10 @@ class DQNLearning:
                 temp_next_states = []
 
                 while length_of_episode >= 0:
-                    temp_states.append(episode[0])
-                    temp_actions.append(episode[1])
-                    temp_rewards.append(episode[2])
-                    temp_next_states.append(episode[3])
+                    temp_states.append(episode[length_of_episode][0])
+                    temp_actions.append(episode[length_of_episode][1])
+                    temp_rewards.append(episode[length_of_episode][2])
+                    temp_next_states.append(episode[length_of_episode][3])
 
                     length_of_episode -= 1
 
@@ -445,18 +458,18 @@ class DQNLearning:
 
                 target_q = np.array(target.model(different_state_list))
 
-                next_state_batch_tf_tensor = tf.convert_to_tensor(temp_next_states, dtype=tf.float32)
-
-                next_q = np.array(target.model(next_state_batch_tf_tensor))
-                max_next_q = get_max_value_from_np_array(next_q)
+                previous_value = 0
 
                 amount = len(temp_states)
 
                 for i in range(amount):
                     if i == 0:
                         target_q[i][temp_actions[i]] += temp_rewards[i]
+                        previous_value = temp_rewards[i]
                     else:
-                        target_q[i][temp_actions[i]] += temp_rewards[i] + self.discount_factor * max_next_q[i]
+                        update_value = temp_rewards[i] + self.discount_factor * previous_value
+                        target_q[i][temp_actions[i]] += update_value
+                        previous_value = update_value
 
                 x = np.array(different_state_list)
                 y = np.array(target_q)
@@ -500,6 +513,10 @@ class DQNLearning:
             if len(list_of_rewards) > 0:
                 plt.plot(list_of_rewards)
                 plt.show()
+
+        end_time = time.time()
+
+        print("Running Time: " + str(end_time - start_time))
 
         return agent
 
@@ -554,17 +571,10 @@ class DQNLearning:
                         break
                     state = self.env.current_state
                     state_list = [state]
-                    prob = (1 - epsilon + (epsilon / self.env.action_space_size)) * 100
-                    rand = random.randint(0, 100)
-                    if rand < prob:
-                        max_action_number = agent.policy(state_list)
-                    else:
-                        temp_action = agent.random_action_minus_max(state_list)
-                        max_action_number = convert_action_into_number(temp_action)
+                    max_action_number = agent.policy(state_list)
                     action = convert_number_into_action(max_action_number)
                     next_state, reward, temp_done = self.env.step(action)
-                    print("\tstep #" + str(step_count) + " " + str(state) + " " + str(action) + " " + str(reward) +
-                          " " + str(next_state))
+                    print("\tstep #" + str(step_count) + " " + " " + str(action) + " " + str(reward))
                     total_reward += reward
                     state = next_state
                     step_count += 1

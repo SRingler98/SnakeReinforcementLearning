@@ -1,19 +1,21 @@
 from DQNClasses import DQNLearning
 from SnakeEnv import SnakeEnv
+from DQNClasses import load_replay_data_from_csv
 
 # start of main
+
 print("Creating model")
 env = SnakeEnv(grid_size=10)
 
 temp_learn = DQNLearning(env=env,
-                         target_name=str(str("SnakeEpisodic")),
-                         episode_count=100,
-                         min_batch_size=1000,
+                         target_name=str(str("SnakeEpisodic2")),
+                         episode_count=10000,
+                         min_batch_size=2500,
                          max_batch_size=-1,
                          load_model=False,
                          fit_on_step=2,
                          train=True,
-                         save_model=False,
+                         save_model=True,
                          show_graphs=True)
 
 print("Training model")

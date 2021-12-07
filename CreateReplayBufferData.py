@@ -1,42 +1,68 @@
-from QLearning import QLearning
-from QLearning import OptimalRunsQLearning as ORQL
+from SnakeEngine import SnakeEngine
+from DQNClasses import ReplayBuffer2
+from DQNClasses import convert_action_into_number
+import csv
 
 
 class CreateReplayBufferData:
     def __init__(self):
-        self.list_of_goals = [(1, 2),
-                              (2, 2),
-                              (3, 2),
-                              (4, 2),
-                              (1, 4),
-                              (2, 4),
-                              (3, 4),
-                              (4, 4)]
-        self.list_of_q_learning_policies = []
-        self.replay_buffer_list = []
+        self.replay = ReplayBuffer2(-1)
 
-    def generate_different_agents(self, n_times, debug_on=False):
-        for goal in self.list_of_goals:
-            temp_policy = QLearning(goal).learning_loop(n_times, debug_on=debug_on)
-            self.list_of_q_learning_policies.append(temp_policy)
-            if debug_on:
-                print("Goal: " + str(goal))
-                print("Policy: " + str(temp_policy))
+    def create_good_data(self):
+        se = SnakeEngine(10)
+        states, actions, rewards, next_states = se.run_game_in_real_time()
 
-    def optimal_runs_q_learning(self, auto=False):
-        count = 0
-        while count < len(self.list_of_q_learning_policies):
-            temp_optimal = ORQL(self.list_of_q_learning_policies[count], self.list_of_goals[count])
-            self.replay_buffer_list.append(temp_optimal.run_optimal_n_times_given_policy(auto=auto))
-            count += 1
-        # print(self.replay_buffer_list)
+        temp_states = []
+
+        for grid in states:
+            temp_states.append(self.convert_from_grid_to_list(grid))
+
+        states = temp_states
+
+        temp_actions = []
+        for item in actions:
+            temp_action = convert_action_into_number(item)
+            temp_actions.append(temp_action)
+
+        actions = temp_actions
+
+        temp_next_states = []
+
+        for grid in next_states:
+            temp_next_states.append(self.convert_from_grid_to_list(grid))
+
+        next_states = temp_next_states
+
+        max_count = len(states)
+
+        index = 0
+
+        episode_list = []
+
+        while index < max_count:
+            episode_list.append([states[index],
+                                 actions[index],
+                                 rewards[index],
+                                 next_states[index]])
+            index += 1
+
+        file = open("snake_game_replay.csv", 'w+')
+        wr = csv.writer(file)
+        wr.writerows(episode_list)
+        file.close()
+
+    def convert_from_grid_to_list(self, grid):
+        temp_list = []
+
+        for row in grid:
+            for item in row:
+                temp_list.append(item)
+
+        return temp_list
+
 
 
 # start of main
 
-# crbd = CreateReplayBufferData()
-# crbd.generate_different_agents(1000, debug_on=False)
-# crbd.optimal_runs_q_learning(auto=True)
-# replay_data = crbd.replay_buffer_list
-#
-# print(len(replay_data))
+crbd = CreateReplayBufferData()
+crbd.create_good_data()
