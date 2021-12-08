@@ -427,7 +427,7 @@ class DQNLearning:
         improvement_score = 0
         previous_improvement_score = 0
         improvement_stayed_the_same = 0
-
+        prob = (1 - self.epsilon + (self.epsilon / self.env.action_space_size)) * 100
         while not done_training:
             previous_improvement_score = improvement_score
 
@@ -440,7 +440,6 @@ class DQNLearning:
             actions = []
             rewards = []
             next_states = []
-            prob = (1 - self.epsilon + (self.epsilon / self.env.action_space_size)) * 100
             while not self.env.get_terminal_state():
                 state = self.env.get_current_state()
                 states.append(state)
