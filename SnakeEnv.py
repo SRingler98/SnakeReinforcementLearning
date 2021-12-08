@@ -224,7 +224,7 @@ class SnakeEnv:
     def move_tail(self, x, y):
         if self.check_if_on_body_or_wall(x, y):
             self.snake_alive = False
-            self.current_reward = -100
+            self.current_reward = -1
         else:
             for segment in self.player_pos_list:
                 self.remove_tail_from_grid(segment)
@@ -250,7 +250,7 @@ class SnakeEnv:
                 self.current_reward = 100
             else:
                 self.add_snake_body_to_grid()
-                self.current_reward = 0
+                self.current_reward = 1
 
     def check_if_on_apple(self):
         if self.player_pos_list[0] == self.apple_pos:

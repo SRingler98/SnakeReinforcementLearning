@@ -17,9 +17,8 @@ from SnakeEngine import SnakeEngine
 def build_model(model_name):
     model = Sequential(name="model_name")
     model.add(layers.InputLayer(input_shape=(100,)))
-    model.add(layers.Dense(128, activation='relu'))
-    model.add(layers.Dense(128, activation='relu'))
-    model.add(layers.Dense(128, activation='relu'))
+    model.add(layers.Dense(1024, activation='relu'))
+    model.add(layers.Dense(1024, activation='relu'))
     model.add(layers.Dense(4, activation='linear'))
     model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.01), loss='mse')
     return model
@@ -365,10 +364,12 @@ class DQNModel:
             elif 75 <= choice <= 100:
                 return temp_action_list[3]
 
-    def policy(self, state_in):
+    def policy(self, state_in, debug=False):
         state_input = tf.convert_to_tensor(state_in, dtype=tf.float32)
         # print(state_input)
         action_q = self.model(state_input)
+        if debug:
+            print("\t" + str(action_q))
         action = np.argmax(action_q.numpy()[0], axis=0)
         return action
 
@@ -412,8 +413,12 @@ class DQNLearning:
             self.env.reset()
             self.sample_random_data(agent, replay, until=self.min_batch_size, debug=debug)
 
-            print("Play one game of snake!")
-            replay.storage.append(create_good_data())
+            # print("Play one game of snake!")
+            # replay.storage.append(create_good_data())
+
+            buffer_data = replay.get_mini_batch(batch_size=10)
+
+            self.fit_replay_data(buffer_data, agent, target)
 
             done_training = False
             if not self.is_train:
@@ -492,46 +497,7 @@ class DQNLearning:
 
                 buffer_data = replay.get_mini_batch(batch_size=10)
 
-                for episode in buffer_data:
-                    length_of_episode = len(episode) - 1
-
-                    temp_states = []
-                    temp_actions = []
-                    temp_rewards = []
-                    temp_next_states = []
-
-                    while length_of_episode >= 0:
-                        temp_states.append(episode[length_of_episode][0])
-                        temp_actions.append(episode[length_of_episode][1])
-                        temp_rewards.append(episode[length_of_episode][2])
-                        temp_next_states.append(episode[length_of_episode][3])
-
-                        length_of_episode -= 1
-
-                    different_state_list = tf.convert_to_tensor(temp_states, dtype=tf.float32)
-
-                    target_q = np.array(target.model(different_state_list))
-
-                    previous_value = 0
-
-                    amount = len(temp_states)
-
-                    for i in range(amount):
-                        if i == 0:
-                            target_q[i][temp_actions[i]] += temp_rewards[i]
-                            previous_value = temp_rewards[i]
-                        else:
-                            update_value = temp_rewards[i] + self.discount_factor * previous_value
-                            target_q[i][temp_actions[i]] += update_value
-                            previous_value = update_value
-
-                    x = np.array(different_state_list)
-                    y = np.array(target_q)
-
-                    verbose_number = 0
-
-                    # gradient decent on model
-                    result = agent.model.fit(x=x, y=y, verbose=verbose_number, batch_size=1)
+                self.fit_replay_data(buffer_data, agent, target)
 
                 if current_episode_count >= self.episode_count:
                     done_training = True
@@ -576,6 +542,48 @@ class DQNLearning:
 
         return agent
 
+    def fit_replay_data(self, replay_data, agent, target):
+        for episode in replay_data:
+            length_of_episode = len(episode) - 1
+
+            temp_states = []
+            temp_actions = []
+            temp_rewards = []
+            temp_next_states = []
+
+            while length_of_episode >= 0:
+                temp_states.append(episode[length_of_episode][0])
+                temp_actions.append(episode[length_of_episode][1])
+                temp_rewards.append(episode[length_of_episode][2])
+                temp_next_states.append(episode[length_of_episode][3])
+
+                length_of_episode -= 1
+
+            different_state_list = tf.convert_to_tensor(temp_states, dtype=tf.float32)
+
+            target_q = np.array(target.model(different_state_list))
+
+            previous_value = 0
+
+            amount = len(temp_states)
+
+            for i in range(amount):
+                if i == 0:
+                    target_q[i][temp_actions[i]] += temp_rewards[i]
+                    previous_value = temp_rewards[i]
+                else:
+                    update_value = temp_rewards[i] + self.discount_factor * previous_value
+                    target_q[i][temp_actions[i]] += update_value
+                    previous_value = update_value
+
+            x = np.array(different_state_list)
+            y = np.array(target_q)
+
+            verbose_number = 0
+
+            # gradient decent on model
+            return agent.model.fit(x=x, y=y, verbose=verbose_number, batch_size=1)
+
     def sample_random_data(self, agent, replay, until, debug=False):
         temp_count = 0
 
@@ -618,7 +626,6 @@ class DQNLearning:
         total_reward = 0
         for i in range(num_of_times):
             self.env.reset()
-            state = self.env.get_current_state()
             step_count = 0
             while not self.env.get_terminal_state():
                 self.env.render()
@@ -627,12 +634,11 @@ class DQNLearning:
                         break
                     state = self.env.get_current_state()
                     state_list = [state]
-                    max_action_number = agent.policy(state_list)
+                    max_action_number = agent.policy(state_list, debug=True)
                     action = convert_number_into_action(max_action_number)
                     next_state, reward, temp_done = self.env.step(action)
                     print("\tstep #" + str(step_count) + " " + " " + str(action) + " " + str(reward))
                     total_reward += reward
-                    state = next_state
                     step_count += 1
         return total_reward / num_of_times
 
