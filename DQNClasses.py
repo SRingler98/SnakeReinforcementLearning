@@ -16,11 +16,12 @@ from SnakeEngine import SnakeEngine
 
 def build_model(model_name):
     model = Sequential(name="model_name")
-    model.add(layers.InputLayer(input_shape=(100,)))
-    model.add(layers.Dense(1024, activation='relu'))
-    model.add(layers.Dense(1024, activation='relu'))
+    model.add(layers.InputLayer(input_shape=(12,)))
+    model.add(layers.Dense(128, activation='relu'))
+    model.add(layers.Dense(128, activation='relu'))
+    model.add(layers.Dense(128, activation='relu'))
     model.add(layers.Dense(4, activation='linear'))
-    model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.01), loss='mse')
+    model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001), loss='mse')
     return model
 
 
@@ -540,6 +541,37 @@ class DQNLearning:
         print("Running Time: " + str(end_time - start_time))
 
         return agent
+
+    def fit_replay_data(self, replay_data, agent, target):
+        temp_states, temp_actions, temp_rewards, temp_next_states = replay_data
+
+        different_state_list = tf.convert_to_tensor(temp_states, dtype=tf.float32)
+
+        target_q = np.array(target.model(different_state_list))
+
+        different_next_state_list = tf.convert_to_tensor(temp_next_states, dtype=tf.float32)
+        max_q = np.array(target.model(different_next_state_list))
+
+        previous_value = 0
+
+        amount = len(temp_states)
+
+        for i in range(amount):
+            if i == 0:
+                target_q[i][temp_actions[i]] += temp_rewards[i]
+                previous_value = temp_rewards[i]
+            else:
+                update_value = temp_rewards[i] + self.discount_factor * (max_q[i][temp_actions[i]] - previous_value)
+                target_q[i][temp_actions[i]] += update_value
+                previous_value = update_value
+
+        x = np.array(different_state_list)
+        y = np.array(target_q)
+
+        verbose_number = 0
+
+        # gradient decent on model
+        return agent.model.fit(x=x, y=y, verbose=verbose_number, batch_size=1)
 
     def fit_replay2_data(self, replay_data, agent, target):
         for episode in replay_data:

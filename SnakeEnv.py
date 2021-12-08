@@ -25,19 +25,20 @@ class SnakeEnv:
         self.score = 0
         self.snake_alive = True
         self.current_reward = 0
-        # self.current_state = self.get_current_twelve_boolean_state()
+        self.current_state = self.get_current_twelve_boolean_state()
         # self.current_state = self.grid_array
-        self.current_state = self.get_current_state()
+        # self.current_state = self.get_current_state()
         self.action_space_size = 4
 
     def get_current_state(self):
-        temp_list = []
-
-        for row in self.grid_array:
-            for item in row:
-                temp_list.append(item)
-
-        return temp_list
+        # temp_list = []
+        #
+        # for row in self.grid_array:
+        #     for item in row:
+        #         temp_list.append(item)
+        #
+        # return temp_list
+        return self.get_current_twelve_boolean_state()
 
     def add_snake_body_to_grid(self):
         for snake_part in self.player_pos_list:
@@ -60,9 +61,9 @@ class SnakeEnv:
         self.apple_spawned = False
         self.spawn_apple_randomly()
         self.current_reward = 0
-        # self.current_state = self.get_current_twelve_boolean_state()
+        self.current_state = self.get_current_twelve_boolean_state()
         # self.current_state = self.grid_array
-        self.current_state = self.get_current_state()
+        # self.current_state = self.get_current_state()
         self.score = 0
 
     def refresh_after_step(self):
@@ -192,8 +193,8 @@ class SnakeEnv:
         elif action == 'down':
             self.move_player_down()
 
-        next_state = self.get_current_state()
-        # next_state = self.get_current_twelve_boolean_state()
+        # next_state = self.get_current_state()
+        next_state = self.get_current_twelve_boolean_state()
         reward = self.current_reward
         done = not self.snake_alive
 
@@ -248,6 +249,7 @@ class SnakeEnv:
                 self.apple_spawned = False
                 self.add_snake_body_to_grid()
                 self.current_reward = 100
+                self.spawn_apple_randomly()
             else:
                 self.add_snake_body_to_grid()
                 self.current_reward = 1
