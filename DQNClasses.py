@@ -17,10 +17,10 @@ from SnakeEngine import SnakeEngine
 def build_model(model_name):
     model = Sequential(name="model_name")
     model.add(layers.InputLayer(input_shape=(100,)))
-    model.add(layers.Dense(200, activation='relu'))
-    model.add(layers.Dense(100, activation='relu'))
+    model.add(layers.Dense(1024, activation='relu'))
+    model.add(layers.Dense(1024, activation='relu'))
     model.add(layers.Dense(4, activation='linear'))
-    model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.1), loss='mse')
+    model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.01), loss='mse')
     return model
 
 
@@ -411,7 +411,7 @@ class DQNLearning:
         self.env.reset()
         self.sample_random_data(agent, replay, until=self.min_batch_size, debug=debug)
 
-        # replay.storage.append(create_good_data())
+        replay.storage.append(create_good_data())
 
         done_training = False
         if not self.is_train:
@@ -442,7 +442,7 @@ class DQNLearning:
             next_states = []
             prob = (1 - self.epsilon + (self.epsilon / self.env.action_space_size)) * 100
             while not self.env.get_terminal_state():
-                state = self.env.current_state
+                state = self.env.get_current_state()
                 states.append(state)
                 rand = random.randint(0, 100)
 
@@ -582,7 +582,7 @@ class DQNLearning:
         temp_next_states = []
 
         while temp_count < until:
-            state = self.env.current_state
+            state = self.env.get_current_state()
             temp_states.append(state)
 
             if self.env.get_terminal_state():
@@ -595,7 +595,7 @@ class DQNLearning:
                 temp_rewards = []
                 temp_next_states = []
 
-                state = self.env.current_state
+                state = self.env.get_current_state()
                 temp_states.append(state)
 
             action = pure_random_action()
@@ -610,19 +610,20 @@ class DQNLearning:
             temp_count += 1
 
     def evaluate(self, agent, num_of_times, epsilon=0.1):
+        agent.model.summary()
         self.q_was_pressed = False
         self.x_was_pressed = False
         total_reward = 0
         for i in range(num_of_times):
             self.env.reset()
-            state = self.env.current_state
+            state = self.env.get_current_state()
             step_count = 0
             while not self.env.get_terminal_state():
                 self.env.render()
                 if self.space_was_pressed():
                     if self.x_was_pressed:
                         break
-                    state = self.env.current_state
+                    state = self.env.get_current_state()
                     state_list = [state]
                     max_action_number = agent.policy(state_list)
                     action = convert_number_into_action(max_action_number)
