@@ -17,8 +17,9 @@ from SnakeEngine import SnakeEngine
 def build_model(model_name):
     model = Sequential(name="model_name")
     model.add(layers.InputLayer(input_shape=(100,)))
-    model.add(layers.Dense(1024, activation='relu'))
-    model.add(layers.Dense(1024, activation='relu'))
+    model.add(layers.Dense(128, activation='relu'))
+    model.add(layers.Dense(128, activation='relu'))
+    model.add(layers.Dense(128, activation='relu'))
     model.add(layers.Dense(4, activation='linear'))
     model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.01), loss='mse')
     return model
@@ -398,173 +399,176 @@ class DQNLearning:
 
     def train(self, debug=False, replay_buffer_data=None):
         start_time = time.time()
-        replay = ReplayBuffer2(self.max_batch_size)
-
         agent = DQNModel(model_location=str('models/' + str(self.target_name)))
 
         if self.load_model:
             agent.load_model()
 
-        target = DQNModel()
-        target.model = clone_model(agent.model)
-
-        self.env.reset()
-        self.sample_random_data(agent, replay, until=self.min_batch_size, debug=debug)
-
-        replay.storage.append(create_good_data())
-
-        done_training = False
-        if not self.is_train:
-            done_training = True
-
-        self.env.reset()
-
-        current_episode_count = 0
-
-        avg_rewards = []
-        list_of_rewards = []
-
-        improvement_score = 0
-        previous_improvement_score = 0
-        improvement_stayed_the_same = 0
-        prob = (1 - self.epsilon + (self.epsilon / self.env.action_space_size)) * 100
-        while not done_training:
-            previous_improvement_score = improvement_score
+        if self.is_train:
+            replay = ReplayBuffer2(self.max_batch_size)
+            target = DQNModel()
+            target.model = clone_model(agent.model)
 
             self.env.reset()
-            step_count = 0
-            policy_used = 0
-            # self.epsilon = 1 - (current_episode_count / self.episode_count)
-            total_reward = 0
-            states = []
-            actions = []
-            rewards = []
-            next_states = []
-            while not self.env.get_terminal_state():
-                state = self.env.get_current_state()
-                states.append(state)
-                rand = random.randint(0, 100)
+            self.sample_random_data(agent, replay, until=self.min_batch_size, debug=debug)
 
-                action = "null"
-                max_action_number = -1
+            print("Play one game of snake!")
+            replay.storage.append(create_good_data())
 
-                state_list = [state]
-
-                if rand <= prob:
-                    if debug:
-                        print("Choosing max")
-                    max_action_number = agent.policy(state_list)
-                    action = convert_number_into_action(max_action_number)
-                    policy_used += 1
-                else:
-                    if debug:
-                        print("choosing random")
-                    # action = agent.random_action_minus_max(state_list)
-                    action = pure_random_action()
-                    max_action_number = convert_action_into_number(action)
-
-                next_state, reward, temp_done = self.env.step(action)
-
-                actions.append(max_action_number)
-                rewards.append(reward)
-                next_states.append(next_state)
-
-                total_reward += reward
-
-                if step_count % 5 == 0:
-                    target.model = clone_model(agent.model)
-                step_count += 1
-
-                if step_count % 100 == 0:
-                    print("\tWARNING 100 steps reached, stopping training")
-                    break
-
-                if step_count % 100 == 0:
-                    print("\tWARNING multiple of 100 steps!")
-                if step_count % 500 == 0:
-                    print("\tWARNING 500 steps reached, stopping training")
-                    break
-            # end episode loop
-
-            replay.store(states, actions, rewards, next_states)
-
-            buffer_data = replay.get_mini_batch(batch_size=10)
-
-            for episode in buffer_data:
-                length_of_episode = len(episode) - 1
-
-                temp_states = []
-                temp_actions = []
-                temp_rewards = []
-                temp_next_states = []
-
-                while length_of_episode >= 0:
-                    temp_states.append(episode[length_of_episode][0])
-                    temp_actions.append(episode[length_of_episode][1])
-                    temp_rewards.append(episode[length_of_episode][2])
-                    temp_next_states.append(episode[length_of_episode][3])
-
-                    length_of_episode -= 1
-
-                different_state_list = tf.convert_to_tensor(temp_states, dtype=tf.float32)
-
-                target_q = np.array(target.model(different_state_list))
-
-                previous_value = 0
-
-                amount = len(temp_states)
-
-                for i in range(amount):
-                    if i == 0:
-                        target_q[i][temp_actions[i]] += temp_rewards[i]
-                        previous_value = temp_rewards[i]
-                    else:
-                        update_value = temp_rewards[i] + self.discount_factor * previous_value
-                        target_q[i][temp_actions[i]] += update_value
-                        previous_value = update_value
-
-                x = np.array(different_state_list)
-                y = np.array(target_q)
-
-                verbose_number = 0
-
-                # gradient decent on model
-                result = agent.model.fit(x=x, y=y, verbose=verbose_number, batch_size=1)
-
-            if current_episode_count >= self.episode_count:
+            done_training = False
+            if not self.is_train:
                 done_training = True
-            else:
-                current_episode_count += 1
-                improvement_score = total_reward / step_count
-                print("\tEpisode " + str(current_episode_count) + " finished\tSteps: " + str(step_count)
-                      + "\tTotal Reward: " + str(total_reward) + "\tPolicy Used: " +
-                      str((policy_used / step_count) * 100) + "%\tImprovement Score: " + str(improvement_score))
-                list_of_rewards.append(total_reward)
-                avg_rewards.append(total_reward / current_episode_count)
 
-                if improvement_score == previous_improvement_score:
-                    improvement_stayed_the_same += 1
-                else:
-                    improvement_stayed_the_same = 0
+            self.env.reset()
 
-                if improvement_stayed_the_same >= 25:
-                    print("Model has not improved in 5 episodes, ending training early.")
+            current_episode_count = 0
+
+            avg_rewards = []
+            list_of_rewards = []
+
+            improvement_score = 0
+            previous_improvement_score = 0
+            improvement_stayed_the_same = 0
+            prob = (1 - self.epsilon + (self.epsilon / self.env.action_space_size)) * 100
+            while not done_training:
+                previous_improvement_score = improvement_score
+
+                self.env.reset()
+                step_count = 0
+                policy_used = 0
+                # self.epsilon = 1 - (current_episode_count / self.episode_count)
+                total_reward = 0
+                states = []
+                actions = []
+                rewards = []
+                next_states = []
+                while not self.env.get_terminal_state():
+                    state = self.env.get_current_state()
+                    states.append(state)
+                    rand = random.randint(0, 100)
+
+                    action = "null"
+                    max_action_number = -1
+
+                    state_list = [state]
+
+                    if rand <= prob:
+                        if debug:
+                            print("Choosing max")
+                        max_action_number = agent.policy(state_list)
+                        action = convert_number_into_action(max_action_number)
+                        policy_used += 1
+                    else:
+                        if debug:
+                            print("choosing random")
+                        # action = agent.random_action_minus_max(state_list)
+                        action = pure_random_action()
+                        max_action_number = convert_action_into_number(action)
+
+                    next_state, reward, temp_done = self.env.step(action)
+
+                    actions.append(max_action_number)
+                    rewards.append(reward)
+                    next_states.append(next_state)
+
+                    total_reward += reward
+
+                    if step_count % 5 == 0:
+                        target.model = clone_model(agent.model)
+                    step_count += 1
+
+                    if step_count % 100 == 0:
+                        print("\tWARNING 100 steps reached, stopping training")
+                        break
+
+                    if step_count % 100 == 0:
+                        print("\tWARNING multiple of 100 steps!")
+                    if step_count % 500 == 0:
+                        print("\tWARNING 500 steps reached, stopping training")
+                        break
+                # end episode loop
+
+                replay.store(states, actions, rewards, next_states)
+
+                buffer_data = replay.get_mini_batch(batch_size=10)
+
+                for episode in buffer_data:
+                    length_of_episode = len(episode) - 1
+
+                    temp_states = []
+                    temp_actions = []
+                    temp_rewards = []
+                    temp_next_states = []
+
+                    while length_of_episode >= 0:
+                        temp_states.append(episode[length_of_episode][0])
+                        temp_actions.append(episode[length_of_episode][1])
+                        temp_rewards.append(episode[length_of_episode][2])
+                        temp_next_states.append(episode[length_of_episode][3])
+
+                        length_of_episode -= 1
+
+                    different_state_list = tf.convert_to_tensor(temp_states, dtype=tf.float32)
+
+                    target_q = np.array(target.model(different_state_list))
+
+                    previous_value = 0
+
+                    amount = len(temp_states)
+
+                    for i in range(amount):
+                        if i == 0:
+                            target_q[i][temp_actions[i]] += temp_rewards[i]
+                            previous_value = temp_rewards[i]
+                        else:
+                            update_value = temp_rewards[i] + self.discount_factor * previous_value
+                            target_q[i][temp_actions[i]] += update_value
+                            previous_value = update_value
+
+                    x = np.array(different_state_list)
+                    y = np.array(target_q)
+
+                    verbose_number = 0
+
+                    # gradient decent on model
+                    result = agent.model.fit(x=x, y=y, verbose=verbose_number, batch_size=1)
+
+                if current_episode_count >= self.episode_count:
                     done_training = True
+                else:
+                    current_episode_count += 1
+                    improvement_score = total_reward / step_count
+                    print("\tEpisode " + str(current_episode_count) + " finished\tSteps: " + str(step_count)
+                          + "\tTotal Reward: " + str(total_reward) + "\tPolicy Used: " +
+                          str((policy_used / step_count) * 100) + "%\tImprovement Score: " + str(improvement_score))
+                    list_of_rewards.append(total_reward)
+                    avg_rewards.append(total_reward / current_episode_count)
 
-        # end training loop
-        if self.save_model:
-            agent.save_model()
+                    if improvement_score == previous_improvement_score:
+                        improvement_stayed_the_same += 1
+                    else:
+                        improvement_stayed_the_same = 0
 
-        print("\tReplay Buffer Size: " + str(replay.get_size_of_replay_buffer()))
+                    if improvement_stayed_the_same >= 25:
+                        print("Model has not improved in 5 episodes, ending training early.")
+                        done_training = True
 
-        if self.show_graphs:
-            if len(avg_rewards) > 0:
-                plt.plot(avg_rewards)
-                plt.show()
+            # end training loop
+            if self.save_model:
+                agent.save_model()
 
-            if len(list_of_rewards) > 0:
-                plt.plot(list_of_rewards)
-                plt.show()
+            print("\tReplay Buffer Size: " + str(replay.get_size_of_replay_buffer()))
+
+            if self.show_graphs:
+                if len(avg_rewards) > 0:
+                    plt.plot(avg_rewards)
+                    plt.show()
+
+                if len(list_of_rewards) > 0:
+                    plt.plot(list_of_rewards)
+                    plt.show()
+
+            agent.model.summary()
 
         end_time = time.time()
 
@@ -609,7 +613,6 @@ class DQNLearning:
             temp_count += 1
 
     def evaluate(self, agent, num_of_times, epsilon=0.1):
-        agent.model.summary()
         self.q_was_pressed = False
         self.x_was_pressed = False
         total_reward = 0
