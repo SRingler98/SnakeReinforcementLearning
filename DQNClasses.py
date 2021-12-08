@@ -408,7 +408,6 @@ class DQNLearning:
         if self.is_train:
             replay = ReplayBuffer2(self.max_batch_size)
             target = DQNModel()
-            target.model = clone_model(agent.model)
 
             self.env.reset()
             self.sample_random_data(agent, replay, until=self.min_batch_size, debug=debug)
@@ -418,7 +417,7 @@ class DQNLearning:
 
             buffer_data = replay.get_mini_batch(batch_size=10)
 
-            self.fit_replay_data(buffer_data, agent, target)
+            self.fit_replay2_data(buffer_data, agent, target)
 
             done_training = False
             if not self.is_train:
@@ -497,7 +496,7 @@ class DQNLearning:
 
                 buffer_data = replay.get_mini_batch(batch_size=10)
 
-                self.fit_replay_data(buffer_data, agent, target)
+                self.fit_replay2_data(buffer_data, agent, target)
 
                 if current_episode_count >= self.episode_count:
                     done_training = True
@@ -542,7 +541,7 @@ class DQNLearning:
 
         return agent
 
-    def fit_replay_data(self, replay_data, agent, target):
+    def fit_replay2_data(self, replay_data, agent, target):
         for episode in replay_data:
             length_of_episode = len(episode) - 1
 
