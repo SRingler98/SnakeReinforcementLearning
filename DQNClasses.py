@@ -563,6 +563,9 @@ class DQNLearning:
 
             target_q = np.array(target.model(different_state_list))
 
+            different_next_state_list = tf.convert_to_tensor(temp_next_states, dtype=tf.float32)
+            max_q = np.array(target.model(different_next_state_list))
+
             previous_value = 0
 
             amount = len(temp_states)
@@ -572,7 +575,7 @@ class DQNLearning:
                     target_q[i][temp_actions[i]] += temp_rewards[i]
                     previous_value = temp_rewards[i]
                 else:
-                    update_value = temp_rewards[i] + self.discount_factor * previous_value
+                    update_value = temp_rewards[i] + self.discount_factor * (max_q[i][temp_actions[i]] - previous_value)
                     target_q[i][temp_actions[i]] += update_value
                     previous_value = update_value
 
