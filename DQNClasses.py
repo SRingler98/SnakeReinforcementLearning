@@ -482,8 +482,8 @@ class DQNLearning:
                         target.model = clone_model(agent.model)
                     step_count += 1
 
-                    if step_count % 100 == 0:
-                        print("\tWARNING 100 steps reached, stopping training")
+                    if step_count % 1000 == 0:
+                        print("\tWARNING 1000 steps reached, stopping training")
                         break
 
                     if step_count % 100 == 0:
