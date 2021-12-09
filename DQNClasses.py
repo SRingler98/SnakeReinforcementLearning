@@ -655,10 +655,10 @@ class DQNLearning:
             temp_count += 1
 
     def evaluate(self, agent, num_of_times, epsilon=0.1):
-        self.q_was_pressed = False
-        self.x_was_pressed = False
         total_reward = 0
         for i in range(num_of_times):
+            self.q_was_pressed = False
+            self.x_was_pressed = False
             self.env.reset()
             step_count = 0
             while not self.env.get_terminal_state():

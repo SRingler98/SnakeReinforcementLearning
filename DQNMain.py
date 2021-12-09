@@ -22,12 +22,4 @@ print("Training model")
 temp_agent = temp_learn.train(debug=False)
 
 temp_learn.evaluate(agent=temp_agent,
-                    num_of_times=1)
-temp_learn.evaluate(agent=temp_agent,
-                    num_of_times=1)
-temp_learn.evaluate(agent=temp_agent,
-                    num_of_times=1)
-temp_learn.evaluate(agent=temp_agent,
-                    num_of_times=1)
-temp_learn.evaluate(agent=temp_agent,
-                    num_of_times=1)
+                    num_of_times=10)
