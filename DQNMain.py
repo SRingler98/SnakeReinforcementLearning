@@ -7,8 +7,8 @@ print("Creating model")
 env = SnakeEnv(grid_size=10)
 
 temp_learn = DQNLearning(env=env,
-                         target_name=str("SnakeEpisodic12Boolean1-5Thousand"),
-                         episode_count=1500,
+                         target_name=str("SnakeEpisodic12Boolean10Thousand"),
+                         episode_count=10000,
                          min_batch_size=500,
                          max_batch_size=-1,
                          epsilon=0.1,
