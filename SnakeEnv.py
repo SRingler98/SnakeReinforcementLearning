@@ -229,8 +229,8 @@ class SnakeEnv:
         else:
             for segment in self.player_pos_list:
                 self.remove_tail_from_grid(segment)
-
             previous_state = self.player_pos_list[0]
+            previous_head_state = self.player_pos_list[0]
             count = 0
             while count < len(self.player_pos_list):
                 if count == 0:
@@ -248,11 +248,34 @@ class SnakeEnv:
                 self.score += 1
                 self.apple_spawned = False
                 self.add_snake_body_to_grid()
-                self.current_reward = 100
+                self.current_reward = 10
                 self.spawn_apple_randomly()
             else:
                 self.add_snake_body_to_grid()
-                self.current_reward = 0
+
+                # New rewards: Snake comes close to apple +1, Snake goes away from apple -1
+                prev_x = previous_head_state[0]
+                prev_y = previous_head_state[1]
+                curr_x = self.player_pos_list[0][0]
+                curr_y = self.player_pos_list[0][1]
+                appl_x = self.apple_pos[0]
+                appl_y = self.apple_pos[1]
+
+                before_x_dist = abs(appl_x - prev_x)
+                before_y_dist = abs(appl_y - prev_y)
+                after_x_dist = abs(appl_x - curr_x)
+                after_y_dist = abs(appl_y - curr_y)
+
+                if before_x_dist < after_x_dist or before_y_dist < after_y_dist:
+                    #moving away
+                    self.current_reward = -1
+                elif before_x_dist > after_x_dist or before_y_dist > after_y_dist:
+                    #moving to
+                    self.current_reward = 1
+                else:
+                    print("Error in asigning reward! Assigned 0 instead!")
+                    self.current_reward = 0
+                
 
     def check_if_on_apple(self):
         if self.player_pos_list[0] == self.apple_pos:
